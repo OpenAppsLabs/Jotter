@@ -8,9 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.FilledTonalIconButton // Import changed
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-// import androidx.compose.material3.IconButton // Removed standard IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +29,8 @@ fun Header(
             .background(MaterialTheme.colorScheme.surface)
             .statusBarsPadding()
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            // OPTICAL FIX: Increased 'end' to 20.dp so the button doesn't feel too close to the edge
+            .padding(start = 16.dp, end = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -41,12 +41,10 @@ fun Header(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        // Replaced IconButton with FilledTonalIconButton
         FilledTonalIconButton(onClick = onSettingsClick) {
             Icon(
                 imageVector = Icons.Outlined.Settings,
                 contentDescription = "Settings",
-                // Changed tint to onSurfaceVariant, which is the default for tonal buttons
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
