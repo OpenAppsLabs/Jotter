@@ -1,7 +1,6 @@
 package com.openapps.jotter.ui.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -10,6 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -38,9 +40,12 @@ fun Header(
     onSettingsClick: (() -> Unit)? = null,
     // Optional: Only used for Detail Screens
     onBackClick: (() -> Unit)? = null,
-    // ✨ NEW PARAMETER: Actions for the right side of the Top Bar
-    actions: @Composable RowScope.() -> Unit = {},
-    // ✨ NEW PARAMETERS for Edit/View Toggle
+    // Save Action
+    onSaveClick: (() -> Unit)? = null,
+    isSaveEnabled: Boolean = false,
+    // ✨ NEW PARAMETER: Delete Action
+    onDeleteClick: (() -> Unit)? = null,
+    // Edit/View Toggle
     isEditing: Boolean = false,
     onToggleEditView: (() -> Unit)? = null
 ) {
@@ -51,18 +56,16 @@ fun Header(
     )
 
     if (onBackClick != null) {
-        // --- DETAIL SCREEN MODE (Back Icon, Center Title/Button, Actions) ---
+        // --- DETAIL SCREEN MODE ---
         CenterAlignedTopAppBar(
             modifier = modifier,
             title = {
-                // ✨ LOGIC ADDED: Display EditViewButton if the toggle function is provided.
                 if (onToggleEditView != null) {
                     EditViewButton(
                         isEditing = isEditing,
                         onToggle = onToggleEditView
                     )
                 } else {
-                    // Default title for new notes or settings screens
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineMedium,
@@ -71,31 +74,64 @@ fun Header(
                 }
             },
             navigationIcon = {
-                // The Circle Back Button (Left)
                 Surface(
                     onClick = onBackClick,
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .size(48.dp)
+                    modifier = Modifier.padding(start = 8.dp).size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back",
+                            imageVector = if (isSaveEnabled) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = if (isSaveEnabled) "Close" else "Back",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(24.dp)
                         )
                     }
                 }
             },
-            // The actions slot (Right) for the Save button
-            actions = actions,
+            actions = {
+                // ✨ Logic: Show Delete if provided (View Mode), otherwise show Save (Edit Mode)
+                if (onDeleteClick != null) {
+                    Surface(
+                        onClick = onDeleteClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.padding(end = 8.dp).size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.error, // Red for delete
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                } else if (onSaveClick != null) {
+                    Surface(
+                        onClick = onSaveClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        enabled = isSaveEnabled,
+                        modifier = Modifier.padding(end = 8.dp).size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = "Save",
+                                tint = if (isSaveEnabled) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            },
             colors = colors
         )
     } else {
-        // --- HOME SCREEN MODE (Left Aligned + Action Buttons) ---
+        // --- HOME SCREEN MODE ---
         TopAppBar(
             modifier = modifier,
             title = {
@@ -105,7 +141,6 @@ fun Header(
                     fontWeight = FontWeight.Medium
                 )
             },
-            // Existing Home Screen actions remain the same
             actions = {
                 if (onToggleView != null) {
                     FilledTonalIconButton(onClick = onToggleView) {
@@ -116,7 +151,6 @@ fun Header(
                         )
                     }
                 }
-
                 if (onSettingsClick != null) {
                     Spacer(modifier = Modifier.width(8.dp))
                     FilledTonalIconButton(onClick = onSettingsClick) {
@@ -127,7 +161,6 @@ fun Header(
                         )
                     }
                 }
-                // Optical balance padding for Home Screen
                 Spacer(modifier = Modifier.width(8.dp))
             },
             colors = colors

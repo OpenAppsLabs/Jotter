@@ -99,11 +99,8 @@ fun AppNavHost(
                 onSave = { title, content ->
                     // TODO: Mock save/update logic here
                     println("MOCK SAVE: Note ID $noteIdArg saved with title: $title")
-                    navController.popBackStack()
                 }
             )
         }
-
-        // Removed separate AddEditNote logic as it's now consolidated above
     }
 }
