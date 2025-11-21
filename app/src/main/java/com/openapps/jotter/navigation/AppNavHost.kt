@@ -95,6 +95,14 @@ fun AppNavHost(
                 initialTitle = noteToView?.title ?: "",
                 initialContent = noteToView?.content ?: "",
 
+                // ✨ NEW: Pass Metadata Fields
+                category = noteToView?.category ?: "Uncategorized",
+                isPinned = noteToView?.isPinned ?: false,
+                isLocked = noteToView?.isLocked ?: false,
+                isArchived = noteToView?.isArchived ?: false,
+                isTrashed = noteToView?.isTrashed ?: false,
+                lastEdited = noteToView?.updatedTime ?: System.currentTimeMillis(),
+
                 onBackClick = { navController.popBackStack() },
                 onSave = { title, content ->
                     // TODO: Mock save/update logic here

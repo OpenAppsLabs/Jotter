@@ -73,7 +73,7 @@ fun DeleteNoteDialog(
                         bottomStart = 4.dp, bottomEnd = 4.dp
                     ),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     ),
                     contentPadding = zeroPadding

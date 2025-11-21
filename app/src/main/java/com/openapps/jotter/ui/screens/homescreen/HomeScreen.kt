@@ -22,6 +22,9 @@ import com.openapps.jotter.ui.components.CategoryBar
 import com.openapps.jotter.ui.components.FAB
 import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.NoteCard
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -33,19 +36,28 @@ fun HomeScreen(
     var selectedCategory by remember { mutableStateOf("All") }
     var isGridView by remember { mutableStateOf(true) }
 
+    // 1. Extract Categories
     val categories = remember {
         sampleNotes.map { it.category }.distinct().sorted()
     }
 
+    // ✨ 2. Check for Pinned Notes
+    val hasPinnedNotes = remember {
+        sampleNotes.any { it.isPinned }
+    }
+
+    // ✨ 3. Updated Filtering Logic to handle "Pinned" selection
     val filteredNotes by remember(selectedCategory) {
         derivedStateOf {
-            if (selectedCategory == "All") {
-                sampleNotes
-            } else {
-                sampleNotes.filter { it.category == selectedCategory }
+            when (selectedCategory) {
+                "All" -> sampleNotes
+                "Pinned" -> sampleNotes.filter { it.isPinned } // Filter for pinned notes
+                else -> sampleNotes.filter { it.category == selectedCategory }
             }
         }
     }
+
+    val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
         topBar = {
@@ -70,6 +82,8 @@ fun HomeScreen(
                 selectedCategory = selectedCategory,
                 onCategorySelect = { selectedCategory = it },
                 onAddCategoryClick = onAddCategoryClick,
+                // ✨ 4. Pass the boolean to show the Pinned chip
+                hasPinnedNotes = hasPinnedNotes,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -85,9 +99,17 @@ fun HomeScreen(
                 verticalItemSpacing = 12.dp
             ) {
                 items(filteredNotes, key = { it.id }) { note ->
+                    val dateStr = remember(note.updatedTime) {
+                        dateFormatter.format(Date(note.updatedTime))
+                    }
+
                     NoteCard(
                         title = note.title,
                         content = note.content,
+                        date = dateStr,
+                        category = note.category,
+                        isPinned = note.isPinned,
+                        isLocked = note.isLocked,
                         isGridView = isGridView,
                         onClick = { onNoteClick(note.id) }
                     )

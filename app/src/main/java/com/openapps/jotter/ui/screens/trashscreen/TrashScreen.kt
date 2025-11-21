@@ -30,6 +30,9 @@ import com.openapps.jotter.ui.components.EmptyTrashDialog
 import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.NoteCard
 import com.openapps.jotter.data.sampleNotes
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun TrashScreen(
@@ -40,6 +43,9 @@ fun TrashScreen(
 
     // Mock Data
     val trashedNotes = sampleNotes.take(3)
+
+    // Helper for Date Formatting
+    val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
         topBar = {
@@ -88,9 +94,19 @@ fun TrashScreen(
                     verticalItemSpacing = 12.dp
                 ) {
                     items(trashedNotes, key = { it.id }) { note ->
+
+                        val dateStr = remember(note.updatedTime) {
+                            dateFormatter.format(Date(note.updatedTime))
+                        }
+
                         NoteCard(
                             title = note.title,
                             content = note.content,
+                            // ✨ NEW PARAMS ADDED
+                            date = dateStr,
+                            category = note.category,
+                            isPinned = note.isPinned,
+                            isLocked = note.isLocked,
                             isGridView = true,
                             onClick = { /* TODO: Restore Dialog */ }
                         )

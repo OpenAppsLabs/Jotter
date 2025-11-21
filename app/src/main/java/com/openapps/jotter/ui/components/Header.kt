@@ -78,7 +78,7 @@ fun Header(
                     onClick = onBackClick,
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.padding(start = 8.dp).size(48.dp)
+                    modifier = Modifier.padding(start = 16.dp).size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -97,7 +97,7 @@ fun Header(
                         onClick = onDeleteClick,
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier.padding(end = 8.dp).size(48.dp)
+                        modifier = Modifier.padding(end = 16.dp).size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
@@ -114,7 +114,7 @@ fun Header(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         enabled = isSaveEnabled,
-                        modifier = Modifier.padding(end = 8.dp).size(48.dp)
+                        modifier = Modifier.padding(end = 16.dp).size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(

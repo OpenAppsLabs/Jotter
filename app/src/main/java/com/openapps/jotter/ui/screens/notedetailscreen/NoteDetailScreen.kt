@@ -14,10 +14,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,7 +56,12 @@ fun NoteDetailScreen(
     noteId: Int? = null,
     initialTitle: String = "",
     initialContent: String = "",
+    // ✨ UPDATED: Reverted to single Category string
     category: String = "Uncategorized",
+    isPinned: Boolean = false,
+    isLocked: Boolean = false,
+    isArchived: Boolean = false,
+    isTrashed: Boolean = false,
     lastEdited: Long = System.currentTimeMillis(),
     onBackClick: () -> Unit,
     onSave: (title: String, content: String) -> Unit,
@@ -59,8 +70,7 @@ fun NoteDetailScreen(
     var title by remember(noteId) { mutableStateOf(initialTitle) }
     var content by remember(noteId) { mutableStateOf(initialContent) }
 
-    // ✨ STATE FIX: Track if the note exists (is previously saved or opened from existing)
-    // This ensures the "Edit/View" button stays visible after saving a new note.
+    // ✨ STATE FIX: Track if the note exists
     var isNotePersisted by remember(noteId) { mutableStateOf(noteId != null) }
 
     // Dialog & Keyboard State Logic
@@ -71,14 +81,13 @@ fun NoteDetailScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
-    val isEditing = noteId != null // Valid for initial load only
+    val isEditing = noteId != null
 
     val isContentModified = (title.trim() != initialTitle.trim()) || (content.trim() != initialContent.trim())
     val isSaveEnabled = isContentModified && (title.isNotBlank() || content.isNotBlank())
 
     // 2. VIEW/EDIT MODE
     var isViewMode by remember { mutableStateOf(isEditing) }
-    // Force view mode to false initially if it's a new note
     if (!isEditing && !isContentModified) isViewMode = false
 
     val dateString = remember(lastEdited) {
@@ -119,14 +128,13 @@ fun NoteDetailScreen(
                 title = "",
                 onBackClick = { handleBack() },
                 isEditing = !isViewMode,
-                // ✨ LOGIC FIX: Show toggle if note is persisted, regardless of current mode
+                // Show toggle if note is persisted
                 onToggleEditView = if (isNotePersisted) { { isViewMode = !isViewMode } } else null,
 
                 // Save Action (Edit Mode)
                 onSaveClick = {
                     if (isSaveEnabled) {
                         onSave(title.trim(), content.trim())
-                        // ✨ Mark as persisted so the UI knows it's no longer "new"
                         isNotePersisted = true
                         isViewMode = true
                         keyboardController?.hide()
@@ -160,12 +168,14 @@ fun NoteDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Left: Primary Tag Chip (Using first tag or Uncategorized)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
+                    // ✨ UPDATED: Display the single category
                     Text(
                         text = category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
@@ -173,11 +183,36 @@ fun NoteDetailScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                Text(
-                    text = dateString,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                // Right: Date + Status Icons
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // ✨ Pinned Icon
+                    if (isPinned) {
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = "Pinned",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    // ✨ Locked Icon
+                    if (isLocked) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Locked",
+                            tint = MaterialTheme.colorScheme.error, // Red lock
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = dateString,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

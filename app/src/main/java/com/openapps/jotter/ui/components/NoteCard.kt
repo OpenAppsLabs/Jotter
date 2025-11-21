@@ -1,84 +1,149 @@
 package com.openapps.jotter.ui.components
 
-import androidx.compose.foundation.interaction.MutableInteractionSource // Import
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api // Import ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember // Import remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role // Import Role
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-// Use ExperimentalMaterial3Api to access the clickable parameters on the Card
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
     title: String,
     content: String,
-    isGridView: Boolean, // New parameter to decide shape
+    date: String,
+    // ✨ CHANGED: Single Category
+    category: String,
+    isPinned: Boolean,
+    isLocked: Boolean,
+    isGridView: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Define the shape modifier based on the view mode
     val sizeModifier = if (isGridView) {
-        // SQUARE: Forces 1:1 aspect ratio
         Modifier.aspectRatio(1f)
     } else {
-        // RECTANGLE: Forces a fixed height for uniformity in List view
-        Modifier.fillMaxWidth().height(120.dp)
+        Modifier.fillMaxWidth().height(140.dp)
     }
 
+    val displayContent = if (isLocked) "Locked Note" else content
+    val contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    else MaterialTheme.colorScheme.onSurfaceVariant
+
     Card(
-        modifier = modifier
-            .then(sizeModifier), // Apply the calculated size
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.then(sizeModifier),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        // 👇 [FIX] Move onClick parameters inside the Card component
-        onClick = onClick,
-        // The default M3 card handles the ripple shape automatically when using these parameters:
-        interactionSource = remember { MutableInteractionSource() },
-        // indication parameter can be omitted or set to LocalIndication.current
+        onClick = onClick
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize() // Fill the fixed size card
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            if (title.isNotEmpty()) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1, // Limit title to 1 line for uniformity
-                    overflow = TextOverflow.Ellipsis
-                )
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = if (title.isEmpty()) "Untitled" else title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    if (isPinned || isLocked) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isPinned) {
+                                Icon(
+                                    imageVector = Icons.Default.PushPin,
+                                    contentDescription = "Pinned",
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            if (isPinned && isLocked) Spacer(modifier = Modifier.size(4.dp))
+                            if (isLocked) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = "Locked",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = displayContent,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor,
+                    maxLines = if (isGridView) 4 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp
+                )
             }
 
-            if (content.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    // Let text fill remaining space but cut off if too long
-                    overflow = TextOverflow.Ellipsis
+                    text = date,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
+
+                // ✨ CHANGED: Display single category
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = category.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 10.sp
+                    )
+                }
             }
         }
     }

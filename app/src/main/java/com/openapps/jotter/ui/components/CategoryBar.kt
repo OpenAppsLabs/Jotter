@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -32,11 +33,22 @@ fun CategoryBar(
     selectedCategory: String,
     onCategorySelect: (String) -> Unit,
     onAddCategoryClick: () -> Unit,
+    // ✨ NEW PARAMETER: Controls visibility of Pinned chip
+    hasPinnedNotes: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
-    val displayList = listOf("All") + categories
+
+    // ✨ LOGIC UPDATE: Construct list dynamically
+    val displayList = remember(categories, hasPinnedNotes) {
+        val list = mutableListOf("All")
+        if (hasPinnedNotes) {
+            list.add("Pinned")
+        }
+        list.addAll(categories)
+        list
+    }
 
     LaunchedEffect(selectedCategory) {
         val index = displayList.indexOf(selectedCategory)
@@ -47,9 +59,6 @@ fun CategoryBar(
                 easing = FastOutSlowInEasing
             )
 
-            // LOGIC FIX:
-            // Check if the target item is currently visible (even partially).
-            // This works for Index 0 ("All") just as well as any other index!
             val layoutInfo = listState.layoutInfo
             val visibleItem = layoutInfo.visibleItemsInfo.find { it.index == index }
 
@@ -65,7 +74,6 @@ fun CategoryBar(
                     listState.animateScrollBy((itemEnd - viewportEnd) + padding, animSpec)
                 } else if (itemStart < 0) {
                     // Slide right to show item (This handles the "Back to All" case smoothly)
-                    // Note: We use itemStart directly to align it to 0, minus padding
                     listState.animateScrollBy(itemStart.toFloat() - padding, animSpec)
                 } else if (index == 0 && itemStart > 0) {
                     // Special sub-case: If "All" is visible but floating in the middle,
