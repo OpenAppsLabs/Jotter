@@ -1,22 +1,22 @@
 package com.openapps.jotter.navigation
 
+// 💡 IMPORTANT: Use the correct, final screen name and package
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
 import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.screens.addcategoryscreen.AddCategoryScreen
 import com.openapps.jotter.ui.screens.archivescreen.ArchiveScreen
 import com.openapps.jotter.ui.screens.backuprestore.BackupRestoreScreen
 import com.openapps.jotter.ui.screens.homescreen.HomeScreen
+import com.openapps.jotter.ui.screens.notedetailscreen.NoteDetailScreen
 import com.openapps.jotter.ui.screens.settingsscreen.SettingsScreen
 import com.openapps.jotter.ui.screens.trashscreen.TrashScreen
-// 💡 IMPORTANT: Use the correct, final screen name and package
-import com.openapps.jotter.ui.screens.notedetailscreen.NoteDetailScreen
 
 @Composable
 fun AppNavHost(

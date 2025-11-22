@@ -81,9 +81,12 @@ fun Header(
                     modifier = Modifier.padding(start = 16.dp).size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
+                        // ✨ UPDATED: Show X if in Edit Mode OR if there are Unsaved Changes
+                        val showCloseIcon = isEditing || isSaveEnabled
+
                         Icon(
-                            imageVector = if (isSaveEnabled) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = if (isSaveEnabled) "Close" else "Back",
+                            imageVector = if (showCloseIcon) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = if (showCloseIcon) "Close" else "Back",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(24.dp)
                         )

@@ -29,22 +29,26 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryBar(
+    modifier: Modifier = Modifier,
     categories: List<String>,
     selectedCategory: String,
     onCategorySelect: (String) -> Unit,
     onAddCategoryClick: () -> Unit,
-    // ✨ NEW PARAMETER: Controls visibility of Pinned chip
+    // ✨ NEW PARAMETERS: Controls visibility of special chips
     hasPinnedNotes: Boolean = false,
-    modifier: Modifier = Modifier
+    hasLockedNotes: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
     // ✨ LOGIC UPDATE: Construct list dynamically
-    val displayList = remember(categories, hasPinnedNotes) {
+    val displayList = remember(categories, hasPinnedNotes, hasLockedNotes) {
         val list = mutableListOf("All")
         if (hasPinnedNotes) {
             list.add("Pinned")
+        }
+        if (hasLockedNotes) {
+            list.add("Locked")
         }
         list.addAll(categories)
         list
@@ -73,16 +77,14 @@ fun CategoryBar(
                     // Slide left to show item
                     listState.animateScrollBy((itemEnd - viewportEnd) + padding, animSpec)
                 } else if (itemStart < 0) {
-                    // Slide right to show item (This handles the "Back to All" case smoothly)
+                    // Slide right to show item
                     listState.animateScrollBy(itemStart.toFloat() - padding, animSpec)
                 } else if (index == 0 && itemStart > 0) {
-                    // Special sub-case: If "All" is visible but floating in the middle,
-                    // slide it back to the absolute start (0px)
+                    // Slide back to start if "All" is floating
                     listState.animateScrollBy(itemStart.toFloat() - padding, animSpec)
                 }
             } else {
-                // Item is completely off-screen?
-                // Use standard scroll. The spring is better for long distances than a tween.
+                // Item is completely off-screen? Use standard scroll.
                 listState.animateScrollToItem(index)
             }
         }
