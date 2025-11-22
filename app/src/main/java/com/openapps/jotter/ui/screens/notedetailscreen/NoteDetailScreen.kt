@@ -1,11 +1,11 @@
 package com.openapps.jotter.ui.screens.notedetailscreen
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility // ✨ NEW IMPORT
-import androidx.compose.animation.fadeIn // ✨ NEW IMPORT
-import androidx.compose.animation.fadeOut // ✨ NEW IMPORT
-import androidx.compose.animation.slideInVertically // ✨ NEW IMPORT
-import androidx.compose.animation.slideOutVertically // ✨ NEW IMPORT
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,9 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -96,6 +93,8 @@ fun NoteDetailScreen(
     var title by remember(noteId) { mutableStateOf(initialTitle) }
     var content by remember(noteId) { mutableStateOf(initialContent) }
     var currentCategory by remember(noteId) { mutableStateOf(category) }
+
+    // UI State for immediate visual feedback
     var currentIsPinned by remember(noteId) { mutableStateOf(isPinned) }
     var currentIsLocked by remember(noteId) { mutableStateOf(isLocked) }
 
@@ -117,11 +116,11 @@ fun NoteDetailScreen(
 
     val isEditing = noteId != null
 
+    // ✨ FIX: Only track Title, Content, and Category as "unsaved changes"
+    // Pin/Lock toggles are treated as independent actions.
     val isContentModified = (title.trim() != initialTitle.trim()) ||
             (content.trim() != initialContent.trim()) ||
-            (currentCategory != category) ||
-            (currentIsPinned != isPinned) ||
-            (currentIsLocked != isLocked)
+            (currentCategory != category)
 
     val isSaveEnabled = isContentModified && (title.isNotBlank() || content.isNotBlank())
 
@@ -170,11 +169,9 @@ fun NoteDetailScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
-        // Local CenterAlignedTopAppBar definition
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    // Title: Conditionally shows EditViewButton or static Text
                     if (isNotePersisted && !isArchivedOrTrashed) {
                         EditViewButton(
                             isEditing = !isViewMode,
@@ -182,14 +179,13 @@ fun NoteDetailScreen(
                         )
                     } else {
                         Text(
-                            text = "", // Title is empty when EditViewButton is not shown
+                            text = "",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Medium
                         )
                     }
                 },
                 navigationIcon = {
-                    // Back Button
                     Surface(
                         onClick = { handleBack() },
                         shape = CircleShape,
@@ -208,9 +204,7 @@ fun NoteDetailScreen(
                     }
                 },
                 actions = {
-                    // Priority: Restore > Delete > Save
                     if (isArchivedOrTrashed) {
-                        // RESTORE BUTTON
                         Surface(
                             onClick = { showRestoreNoteDialog = true },
                             shape = CircleShape,
@@ -228,7 +222,6 @@ fun NoteDetailScreen(
                             }
                         }
                     } else if (isViewMode && !isSaveEnabled) {
-                        // DELETE BUTTON
                         Surface(
                             onClick = { showDeleteDialog = true },
                             shape = CircleShape,
@@ -245,7 +238,6 @@ fun NoteDetailScreen(
                             }
                         }
                     } else {
-                        // SAVE BUTTON
                         Surface(
                             onClick = {
                                 if (isSaveEnabled) {
@@ -279,16 +271,12 @@ fun NoteDetailScreen(
                 )
             )
         },
-        // ✨ ANIMATED BOTTOM BAR
         bottomBar = {
-            // Show bar if in View Mode (or Edit Mode if you want), Note Exists, and Not Archived/Trashed
             val showBottomBar = isViewMode && isNotePersisted && !isArchivedOrTrashed
 
             AnimatedVisibility(
                 visible = showBottomBar,
-                // Enter: Slide UP from bottom + Fade In
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                // Exit: Slide DOWN to bottom + Fade Out
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
             ) {
                 Box(
@@ -301,6 +289,7 @@ fun NoteDetailScreen(
                     PinLockBar(
                         isPinned = currentIsPinned,
                         isLocked = currentIsLocked,
+                        // ✨ FIX: Direct updates (independant of save logic)
                         onTogglePin = { currentIsPinned = !currentIsPinned },
                         onToggleLock = { currentIsLocked = !currentIsLocked }
                     )
@@ -325,7 +314,6 @@ fun NoteDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left: Primary Tag Chip
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -341,9 +329,9 @@ fun NoteDetailScreen(
                     )
                 }
 
-                // Right: Date + Status Icons
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (isPinned) {
+                    // ✨ FIX: Use dynamic state to show correct icons in metadata row
+                    if (currentIsPinned) {
                         Icon(
                             imageVector = Icons.Default.PushPin,
                             contentDescription = "Pinned",
@@ -352,7 +340,7 @@ fun NoteDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    if (isLocked) {
+                    if (currentIsLocked) {
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = "Locked",
@@ -460,8 +448,7 @@ fun NoteDetailScreen(
                     title = initialTitle
                     content = initialContent
                     currentCategory = category
-                    currentIsPinned = isPinned
-                    currentIsLocked = isLocked
+                    // No need to reset pin/lock here as they are independent
                     isViewMode = true
                 } else {
                     onBackClick()
@@ -487,7 +474,7 @@ fun NoteDetailScreen(
             onDismiss = { showRestoreNoteDialog = false },
             onConfirm = {
                 showRestoreNoteDialog = false
-                onUnarchiveClick(noteId!!) // Call the final restore action
+                onUnarchiveClick(noteId!!)
             }
         )
     }
