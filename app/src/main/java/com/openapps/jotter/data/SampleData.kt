@@ -132,7 +132,7 @@ val sampleNotes = listOf(
         deletedTime = null,
         isPinned = false,
         isArchived = false,
-        isTrashed = false,
+        isTrashed = true,
         isLocked = false,
         category = "Personal"
     ),

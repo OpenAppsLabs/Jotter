@@ -1,6 +1,5 @@
 package com.openapps.jotter.navigation
 
-// 💡 IMPORTANT: Use the correct, final screen name and package
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -57,12 +56,19 @@ fun AppNavHost(
             )
         }
 
+        // 💡 FIX: ArchiveScreen must pass onNoteClick to navigate to the detail screen
         composable(AppRoutes.ARCHIVE) {
-            ArchiveScreen(onBackClick = { navController.popBackStack() })
+            ArchiveScreen(
+                onBackClick = { navController.popBackStack() },
+                onNoteClick = { noteId -> navController.navigate("${AppRoutes.NOTE_DETAIL}/$noteId") }
+            )
         }
 
         composable(AppRoutes.TRASH) {
-            TrashScreen(onBackClick = { navController.popBackStack() })
+            TrashScreen(
+                onBackClick = { navController.popBackStack() },
+                onNoteClick = { noteId -> navController.navigate("${AppRoutes.NOTE_DETAIL}/$noteId") }
+            )
         }
 
         composable(AppRoutes.BACKUP_RESTORE) {
@@ -89,13 +95,19 @@ fun AppNavHost(
             // Only pass the ID if it's an existing note
             val noteIdArg = noteId?.takeIf { it != -1 }
 
+            // Define the Unarchive action logic (pops back after unarchiving)
+            val onUnarchive: (Int) -> Unit = { id ->
+                println("MOCK UNARCHIVE: Note ID $id unarchived.")
+                navController.popBackStack()
+            }
+
             // 💡 Use NoteDetailScreen
             NoteDetailScreen(
                 noteId = noteIdArg,
                 initialTitle = noteToView?.title ?: "",
                 initialContent = noteToView?.content ?: "",
 
-                // ✨ NEW: Pass Metadata Fields
+                // Pass Metadata Fields
                 category = noteToView?.category ?: "Uncategorized",
                 isPinned = noteToView?.isPinned ?: false,
                 isLocked = noteToView?.isLocked ?: false,
@@ -110,7 +122,8 @@ fun AppNavHost(
                 },
                 onManageCategoryClick = {
                     navController.navigate(AppRoutes.ADD_CATEGORY)
-                }
+                },
+                onUnarchiveClick = onUnarchive
             )
         }
     }

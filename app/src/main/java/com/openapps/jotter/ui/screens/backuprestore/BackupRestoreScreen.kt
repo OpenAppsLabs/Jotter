@@ -3,6 +3,7 @@ package com.openapps.jotter.ui.screens.backuprestore
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -13,26 +14,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.openapps.jotter.ui.components.Header
+// Removed import: com.openapps.jotter.ui.components.Header
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,10 +45,40 @@ fun BackupRestoreScreen(
     onBackClick: () -> Unit
 ) {
     Scaffold(
+        // ✨ REFACTORED: Local CenterAlignedTopAppBar definition
         topBar = {
-            Header(
-                title = "Backup & Restore",
-                onBackClick = onBackClick
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Backup & Restore",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                navigationIcon = {
+                    // Circular Back Button Logic
+                    Surface(
+                        onClick = onBackClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier
+                            .padding(start = 12.dp) // Consistent with previous Header padding
+                            .size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { innerPadding ->
@@ -104,7 +139,7 @@ fun BackupRestoreScreen(
     }
 }
 
-// --- Helper Composables (Copied from SettingsScreen structure) ---
+// --- Helper Composables (Used for BackupRestoreItem styling) ---
 
 @Composable
 fun TinyGap() {
@@ -152,7 +187,6 @@ fun BackupRestoreItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // ADJUSTED: Reduced height to match SettingsScreen items (80.dp)
             .height(80.dp)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
@@ -162,16 +196,16 @@ fun BackupRestoreItem(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp) // Also matched icon size
+            modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.width(24.dp)) // Matched inner spacing
+        Spacer(modifier = Modifier.width(24.dp))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge, // Matched title style
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
