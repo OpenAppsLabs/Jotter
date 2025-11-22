@@ -114,6 +114,7 @@ fun NoteDetailScreen(
 
     fun handleBack() {
         if (isSaveEnabled) {
+            // Case 1: Has unsaved changes -> Prompt Dialog
             if (isImeVisible) {
                 pendingDiscard = true
                 keyboardController?.hide()
@@ -121,11 +122,18 @@ fun NoteDetailScreen(
                 showDiscardDialog = true
             }
         } else {
-            onBackClick()
+            // Case 2: No changes -> Check logic
+            if (!isViewMode && isNotePersisted) {
+                // If we are in Edit Mode on an existing note, just cancel edit (go to View Mode)
+                isViewMode = true
+            } else {
+                // Otherwise (View Mode OR New Note), actually go back
+                onBackClick()
+            }
         }
     }
 
-    BackHandler(enabled = isSaveEnabled) {
+    BackHandler(enabled = true) {
         handleBack()
     }
 
@@ -176,7 +184,6 @@ fun NoteDetailScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
-                        // ✨ FIX: Removed check for !isViewMode. Now clickable always.
                         .clickable { showCategorySheet = true }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
@@ -290,7 +297,6 @@ fun NoteDetailScreen(
             selectedCategory = currentCategory,
             onCategorySelect = { newCategory ->
                 currentCategory = newCategory
-                // ✨ FIX: Automatically switch to Edit Mode so Save button appears
                 isViewMode = false
             },
             onManageCategoriesClick = onManageCategoryClick,

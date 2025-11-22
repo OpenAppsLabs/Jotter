@@ -37,7 +37,6 @@ fun NoteCard(
     title: String,
     content: String,
     date: String,
-    // ✨ CHANGED: Single Category
     category: String,
     isPinned: Boolean,
     isLocked: Boolean,
@@ -51,7 +50,10 @@ fun NoteCard(
         Modifier.fillMaxWidth().height(140.dp)
     }
 
-    val displayContent = if (isLocked) "Locked Note" else content
+    // For List view, we show "Locked Note" text.
+    // For Grid view, we will show the icon in the center instead of text.
+    val displayContent = if (isLocked && !isGridView) "Locked Note" else content
+
     val contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     else MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -68,7 +70,8 @@ fun NoteCard(
             modifier = Modifier.padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            // --- TOP SECTION ---
+            Column(modifier = Modifier.weight(1f)) { // Added weight to push footer down
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -83,41 +86,65 @@ fun NoteCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    if (isPinned || isLocked) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (isPinned) {
-                                Icon(
-                                    imageVector = Icons.Default.PushPin,
-                                    contentDescription = "Pinned",
-                                    tint = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            if (isPinned && isLocked) Spacer(modifier = Modifier.size(4.dp))
-                            if (isLocked) {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = "Locked",
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
+                    // Icons Block
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Pin always shows top-right if active
+                        if (isPinned) {
+                            Icon(
+                                imageVector = Icons.Default.PushPin,
+                                contentDescription = "Pinned",
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        // Spacer only if we have both icons in this row
+                        if (isPinned && (isLocked && !isGridView)) {
+                            Spacer(modifier = Modifier.size(4.dp))
+                        }
+
+                        // Lock only shows top-right in LIST view
+                        if (isLocked && !isGridView) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Locked",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = displayContent,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor,
-                    maxLines = if (isGridView) 4 else 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
-                )
+                // --- CONTENT SECTION ---
+                if (isLocked && isGridView) {
+                    // ✨ GRID VIEW LOCKED: Centered Large Lock Icon
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Locked",
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                } else {
+                    // Standard Text (or "Locked Note" for List view)
+                    Text(
+                        text = displayContent,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor,
+                        maxLines = if (isGridView) 4 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 20.sp
+                    )
+                }
             }
 
+            // --- FOOTER SECTION ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -129,7 +156,6 @@ fun NoteCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
 
-                // ✨ CHANGED: Display single category
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))

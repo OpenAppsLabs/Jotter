@@ -50,9 +50,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.ClearAllDataDialog
 import com.openapps.jotter.ui.components.EditViewButton
+import com.openapps.jotter.ui.components.Header
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -26,10 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.components.EmptyTrashDialog
 import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.NoteCard
-import com.openapps.jotter.data.sampleNotes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

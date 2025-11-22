@@ -41,17 +41,23 @@ fun HomeScreen(
         sampleNotes.map { it.category }.distinct().sorted()
     }
 
-    // ✨ 2. Check for Pinned Notes
+    // 2. Check for Pinned Notes
     val hasPinnedNotes = remember {
         sampleNotes.any { it.isPinned }
     }
 
-    // ✨ 3. Updated Filtering Logic to handle "Pinned" selection
+    // ✨ 3. Check for Locked Notes
+    val hasLockedNotes = remember {
+        sampleNotes.any { it.isLocked }
+    }
+
+    // ✨ 4. Updated Filtering Logic to handle "Pinned" and "Locked"
     val filteredNotes by remember(selectedCategory) {
         derivedStateOf {
             when (selectedCategory) {
                 "All" -> sampleNotes
-                "Pinned" -> sampleNotes.filter { it.isPinned } // Filter for pinned notes
+                "Pinned" -> sampleNotes.filter { it.isPinned }
+                "Locked" -> sampleNotes.filter { it.isLocked } // Handle Locked selection
                 else -> sampleNotes.filter { it.category == selectedCategory }
             }
         }
@@ -82,8 +88,9 @@ fun HomeScreen(
                 selectedCategory = selectedCategory,
                 onCategorySelect = { selectedCategory = it },
                 onAddCategoryClick = onAddCategoryClick,
-                // ✨ 4. Pass the boolean to show the Pinned chip
                 hasPinnedNotes = hasPinnedNotes,
+                // ✨ 5. Pass the boolean to show the Locked chip
+                hasLockedNotes = hasLockedNotes,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
