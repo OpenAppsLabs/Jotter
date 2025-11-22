@@ -60,4 +60,5 @@ dependencies {
 
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose) // Or latest version
+    implementation(libs.reorderable)
 }
