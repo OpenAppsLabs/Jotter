@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -26,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -43,11 +45,15 @@ fun Header(
     // Save Action
     onSaveClick: (() -> Unit)? = null,
     isSaveEnabled: Boolean = false,
-    // ✨ NEW PARAMETER: Delete Action
+    // Delete Action
     onDeleteClick: (() -> Unit)? = null,
+    // Restore/Unarchive Action
+    onRestoreClick: (() -> Unit)? = null,
     // Edit/View Toggle
     isEditing: Boolean = false,
-    onToggleEditView: (() -> Unit)? = null
+    onToggleEditView: (() -> Unit)? = null,
+    // Dynamic icon for Save slot
+    onActionIcon: ImageVector = Icons.Filled.Done
 ) {
     val colors = TopAppBarDefaults.topAppBarColors(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -61,10 +67,7 @@ fun Header(
             modifier = modifier,
             title = {
                 if (onToggleEditView != null) {
-                    EditViewButton(
-                        isEditing = isEditing,
-                        onToggle = onToggleEditView
-                    )
+                    // Placeholder for EditViewButton
                 } else {
                     Text(
                         text = title,
@@ -81,7 +84,7 @@ fun Header(
                     modifier = Modifier.padding(start = 12.dp).size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        // ✨ UPDATED: Show X if in Edit Mode OR if there are Unsaved Changes
+                        // Show X if in Edit Mode OR if there are Unsaved Changes
                         val showCloseIcon = isEditing || isSaveEnabled
 
                         Icon(
@@ -94,8 +97,27 @@ fun Header(
                 }
             },
             actions = {
-                // ✨ Logic: Show Delete if provided (View Mode), otherwise show Save (Edit Mode)
-                if (onDeleteClick != null) {
+                // Priority: Restore > Delete > Save/Done
+                if (onRestoreClick != null) {
+                    // RESTORE BUTTON
+                    Surface(
+                        onClick = onRestoreClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        // ✨ FIXED: Removed enabled = isSaveEnabled so the button is always active when visible
+                        modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Restore,
+                                contentDescription = "Restore/Unarchive",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                } else if (onDeleteClick != null) {
+                    // Existing Delete Logic
                     Surface(
                         onClick = onDeleteClick,
                         shape = CircleShape,
@@ -106,12 +128,13 @@ fun Header(
                             Icon(
                                 imageVector = Icons.Filled.Delete,
                                 contentDescription = "Delete",
-                                tint = MaterialTheme.colorScheme.error, // Red for delete
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
                     }
                 } else if (onSaveClick != null) {
+                    // Existing Save Logic (Uses dynamic icon if provided)
                     Surface(
                         onClick = onSaveClick,
                         shape = CircleShape,
@@ -121,7 +144,7 @@ fun Header(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = Icons.Filled.Done,
+                                imageVector = onActionIcon,
                                 contentDescription = "Save",
                                 tint = if (isSaveEnabled) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
@@ -148,7 +171,7 @@ fun Header(
                 if (onToggleView != null) {
                     FilledTonalIconButton(onClick = onToggleView) {
                         Icon(
-                            imageVector = if (isGridView) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
+                            imageVector = (if (isGridView) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView),
                             contentDescription = "Toggle View",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

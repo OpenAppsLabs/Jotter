@@ -3,12 +3,25 @@ package com.openapps.jotter.ui.screens.homescreen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -16,16 +29,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.components.CategoryBar
 import com.openapps.jotter.ui.components.FAB
-import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.NoteCard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// Removed import: com.openapps.jotter.ui.components.Header
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNoteClick: (Int) -> Unit,
@@ -41,23 +57,17 @@ fun HomeScreen(
         sampleNotes.map { it.category }.distinct().sorted()
     }
 
-    // 2. Check for Pinned Notes
-    val hasPinnedNotes = remember {
-        sampleNotes.any { it.isPinned }
-    }
+    // 2. Check for Status Notes
+    val hasPinnedNotes = remember { sampleNotes.any { it.isPinned } }
+    val hasLockedNotes = remember { sampleNotes.any { it.isLocked } }
 
-    // ✨ 3. Check for Locked Notes
-    val hasLockedNotes = remember {
-        sampleNotes.any { it.isLocked }
-    }
-
-    // ✨ 4. Updated Filtering Logic to handle "Pinned" and "Locked"
+    // 3. Filtering Logic
     val filteredNotes by remember(selectedCategory) {
         derivedStateOf {
             when (selectedCategory) {
                 "All" -> sampleNotes
                 "Pinned" -> sampleNotes.filter { it.isPinned }
-                "Locked" -> sampleNotes.filter { it.isLocked } // Handle Locked selection
+                "Locked" -> sampleNotes.filter { it.isLocked }
                 else -> sampleNotes.filter { it.category == selectedCategory }
             }
         }
@@ -66,12 +76,44 @@ fun HomeScreen(
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
+        // ✨ REFACTORED: Local TopAppBar definition
         topBar = {
-            Header(
-                title = "Jotter.",
-                isGridView = isGridView,
-                onToggleView = { isGridView = !isGridView },
-                onSettingsClick = onSettingsClick
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Jotter.",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                actions = {
+                    // View Toggle Button
+                    FilledTonalIconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
+                            contentDescription = "Toggle View",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Settings Button
+                    FilledTonalIconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    // Optical balance padding
+                    Spacer(modifier = Modifier.width(8.dp))
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         },
         floatingActionButton = {
@@ -89,7 +131,6 @@ fun HomeScreen(
                 onCategorySelect = { selectedCategory = it },
                 onAddCategoryClick = onAddCategoryClick,
                 hasPinnedNotes = hasPinnedNotes,
-                // ✨ 5. Pass the boolean to show the Locked chip
                 hasLockedNotes = hasLockedNotes,
                 modifier = Modifier.padding(bottom = 8.dp)
             )

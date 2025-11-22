@@ -1,6 +1,11 @@
 package com.openapps.jotter.ui.screens.notedetailscreen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility // ✨ NEW IMPORT
+import androidx.compose.animation.fadeIn // ✨ NEW IMPORT
+import androidx.compose.animation.fadeOut // ✨ NEW IMPORT
+import androidx.compose.animation.slideInVertically // ✨ NEW IMPORT
+import androidx.compose.animation.slideOutVertically // ✨ NEW IMPORT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,20 +19,32 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +54,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -48,11 +67,14 @@ import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.components.CategorySheet
 import com.openapps.jotter.ui.components.DeleteNoteDialog
 import com.openapps.jotter.ui.components.DiscardChangesDialog
-import com.openapps.jotter.ui.components.Header
+import com.openapps.jotter.ui.components.EditViewButton
+import com.openapps.jotter.ui.components.PinLockBar
+import com.openapps.jotter.ui.components.RestoreNoteDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     modifier: Modifier = Modifier,
@@ -67,12 +89,15 @@ fun NoteDetailScreen(
     lastEdited: Long = System.currentTimeMillis(),
     onBackClick: () -> Unit,
     onSave: (title: String, content: String) -> Unit,
-    onManageCategoryClick: () -> Unit = {}
+    onManageCategoryClick: () -> Unit = {},
+    onUnarchiveClick: (Int) -> Unit = { id -> }
 ) {
     // 1. STATE
     var title by remember(noteId) { mutableStateOf(initialTitle) }
     var content by remember(noteId) { mutableStateOf(initialContent) }
     var currentCategory by remember(noteId) { mutableStateOf(category) }
+    var currentIsPinned by remember(noteId) { mutableStateOf(isPinned) }
+    var currentIsLocked by remember(noteId) { mutableStateOf(isLocked) }
 
     var isNotePersisted by remember(noteId) { mutableStateOf(noteId != null) }
 
@@ -81,6 +106,7 @@ fun NoteDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
     var pendingDiscard by remember { mutableStateOf(false) }
+    var showRestoreNoteDialog by remember { mutableStateOf(false) }
 
     val availableCategories = remember {
         sampleNotes.map { it.category }.distinct().sorted()
@@ -93,7 +119,9 @@ fun NoteDetailScreen(
 
     val isContentModified = (title.trim() != initialTitle.trim()) ||
             (content.trim() != initialContent.trim()) ||
-            (currentCategory != category)
+            (currentCategory != category) ||
+            (currentIsPinned != isPinned) ||
+            (currentIsLocked != isLocked)
 
     val isSaveEnabled = isContentModified && (title.isNotBlank() || content.isNotBlank())
 
@@ -137,29 +165,147 @@ fun NoteDetailScreen(
         handleBack()
     }
 
+    // Determine what action should appear on the right side of the Header
+    val isArchivedOrTrashed = isArchived || isTrashed
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
+        // Local CenterAlignedTopAppBar definition
         topBar = {
-            Header(
-                title = "",
-                onBackClick = { handleBack() },
-                isEditing = !isViewMode,
-                onToggleEditView = if (isNotePersisted) { { isViewMode = !isViewMode } } else null,
-                onSaveClick = {
-                    if (isSaveEnabled) {
-                        onSave(title.trim(), content.trim())
-                        isNotePersisted = true
-                        isViewMode = true
-                        keyboardController?.hide()
+            CenterAlignedTopAppBar(
+                title = {
+                    // Title: Conditionally shows EditViewButton or static Text
+                    if (isNotePersisted && !isArchivedOrTrashed) {
+                        EditViewButton(
+                            isEditing = !isViewMode,
+                            onToggle = { isViewMode = !isViewMode }
+                        )
+                    } else {
+                        Text(
+                            text = "", // Title is empty when EditViewButton is not shown
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 },
-                isSaveEnabled = isSaveEnabled,
-                onDeleteClick = if (isViewMode) {
-                    { showDeleteDialog = true }
-                } else {
-                    null
-                }
+                navigationIcon = {
+                    // Back Button
+                    Surface(
+                        onClick = { handleBack() },
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.padding(start = 12.dp).size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            val showCloseIcon = !isViewMode || isSaveEnabled
+                            Icon(
+                                imageVector = if (showCloseIcon) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = if (showCloseIcon) "Close" else "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                },
+                actions = {
+                    // Priority: Restore > Delete > Save
+                    if (isArchivedOrTrashed) {
+                        // RESTORE BUTTON
+                        Surface(
+                            onClick = { showRestoreNoteDialog = true },
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            enabled = true,
+                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Restore,
+                                    contentDescription = "Restore/Unarchive",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    } else if (isViewMode && !isSaveEnabled) {
+                        // DELETE BUTTON
+                        Surface(
+                            onClick = { showDeleteDialog = true },
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Delete",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        // SAVE BUTTON
+                        Surface(
+                            onClick = {
+                                if (isSaveEnabled) {
+                                    onSave(title.trim(), content.trim())
+                                    isNotePersisted = true
+                                    isViewMode = true
+                                    keyboardController?.hide()
+                                }
+                            },
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            enabled = isSaveEnabled,
+                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Save",
+                                    tint = if (isSaveEnabled) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
+        },
+        // ✨ ANIMATED BOTTOM BAR
+        bottomBar = {
+            // Show bar if in View Mode (or Edit Mode if you want), Note Exists, and Not Archived/Trashed
+            val showBottomBar = isViewMode && isNotePersisted && !isArchivedOrTrashed
+
+            AnimatedVisibility(
+                visible = showBottomBar,
+                // Enter: Slide UP from bottom + Fade In
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                // Exit: Slide DOWN to bottom + Fade Out
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(bottom = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PinLockBar(
+                        isPinned = currentIsPinned,
+                        isLocked = currentIsLocked,
+                        onTogglePin = { currentIsPinned = !currentIsPinned },
+                        onToggleLock = { currentIsLocked = !currentIsLocked }
+                    )
+                }
+            }
         },
         modifier = modifier
     ) { innerPadding ->
@@ -184,7 +330,7 @@ fun NoteDetailScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
-                        .clickable { showCategorySheet = true }
+                        .clickable { if (!isViewMode) showCategorySheet = true }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
@@ -314,6 +460,8 @@ fun NoteDetailScreen(
                     title = initialTitle
                     content = initialContent
                     currentCategory = category
+                    currentIsPinned = isPinned
+                    currentIsLocked = isLocked
                     isViewMode = true
                 } else {
                     onBackClick()
@@ -329,6 +477,17 @@ fun NoteDetailScreen(
             onConfirm = {
                 showDeleteDialog = false
                 onBackClick()
+            }
+        )
+    }
+
+    // Restore Logic
+    if (showRestoreNoteDialog) {
+        RestoreNoteDialog(
+            onDismiss = { showRestoreNoteDialog = false },
+            onConfirm = {
+                showRestoreNoteDialog = false
+                onUnarchiveClick(noteId!!) // Call the final restore action
             }
         )
     }

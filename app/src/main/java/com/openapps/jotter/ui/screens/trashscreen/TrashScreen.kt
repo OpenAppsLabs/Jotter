@@ -4,19 +4,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,25 +32,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.components.EmptyTrashDialog
-import com.openapps.jotter.ui.components.Header
 import com.openapps.jotter.ui.components.NoteCard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.Box as ComposeBox
+import androidx.compose.foundation.layout.Column as ComposeColumn
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrashScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    // ✨ FIX 1: Add navigation callback to allow opening note
+    onNoteClick: (Int) -> Unit = {}
 ) {
     // State to control dialog visibility
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
 
-    // ✨ UPDATED: Filter sampleNotes to only show trashed notes (and exclude archived ones)
-    // Note: We currently don't have sample notes marked as isTrashed=true, so this list will be empty
+    // Removed: showRestoreNoteDialog and noteIdToRestore states
+
+    // Filter sampleNotes to only show trashed notes (and exclude archived ones)
     val trashedNotes = remember {
         sampleNotes.filter { it.isTrashed && !it.isArchived }
     }
@@ -52,15 +68,44 @@ fun TrashScreen(
 
     Scaffold(
         topBar = {
-            Header(
-                title = "Trash",
-                onBackClick = onBackClick
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Trash",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                navigationIcon = {
+                    // Circular Back Button Logic (Replicated from Header)
+                    Surface(
+                        onClick = onBackClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.padding(start = 12.dp).size(48.dp)
+                    ) {
+                        ComposeBox(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = Color.Unspecified,
+                    navigationIconContentColor = Color.Unspecified,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = Color.Unspecified
+                )
             )
         },
         floatingActionButton = {
             if (trashedNotes.isNotEmpty()) {
                 ExtendedFloatingActionButton(
-                    // CLICK: Open the dialog
                     onClick = { showEmptyTrashDialog = true },
                     icon = { Icon(Icons.Default.DeleteForever, contentDescription = null) },
                     text = { Text("Empty Trash") },
@@ -77,16 +122,11 @@ fun TrashScreen(
                 .padding(innerPadding)
         ) {
             if (trashedNotes.isEmpty()) {
-                Box(
+                ComposeBox(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Trash is empty",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                    EmptyTrashContent()
                 }
             } else {
                 LazyVerticalStaggeredGrid(
@@ -110,14 +150,14 @@ fun TrashScreen(
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
                             isGridView = true,
-                            onClick = { /* TODO: Restore Dialog */ }
+                            // ✨ FIX 2: Navigate to detail screen on click
+                            onClick = { onNoteClick(note.id) }
                         )
                     }
                 }
             }
         }
 
-        // LOGIC: Render the dialog if state is true
         if (showEmptyTrashDialog) {
             EmptyTrashDialog(
                 onDismiss = { showEmptyTrashDialog = false },
@@ -127,5 +167,41 @@ fun TrashScreen(
                 }
             )
         }
+
+        // Removed Restore Dialog rendering logic
+    }
+}
+
+
+@Composable
+private fun EmptyTrashContent() {
+    ComposeColumn(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(32.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.DeleteForever,
+            contentDescription = "Trash Icon",
+            modifier = Modifier.size(72.dp),
+            tint = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Nothing in the Trash",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Notes you delete will appear here, and are automatically removed after 7 days.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
     }
 }
