@@ -49,4 +49,8 @@ interface NoteDao {
     // Move all notes in trash to permanent deletion (for Empty Trash)
     @Query("DELETE FROM notes WHERE isTrashed = 1")
     suspend fun emptyTrash()
+
+    // Get a Flow of all unique, non-blank categories used in notes
+    @Query("SELECT DISTINCT category FROM notes WHERE category IS NOT NULL AND category != ''")
+    fun getCategories(): Flow<List<String>>
 }

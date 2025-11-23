@@ -2,8 +2,8 @@ package com.openapps.jotter.ui.screens.homescreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openapps.jotter.data.model.Note // Use the new Note Entity
-import com.openapps.jotter.data.repository.NotesRepository // Inject the new Notes Repository
+import com.openapps.jotter.data.model.Note
+import com.openapps.jotter.data.repository.NotesRepository
 import com.openapps.jotter.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    // 1. Inject both Repositories
     private val notesRepository: NotesRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
@@ -25,25 +24,47 @@ class HomeScreenViewModel @Inject constructor(
     private val _categoryFlow = MutableStateFlow("All")
 
     // 1. Reactive UI State
-    // Combines Notes Flow from Room + User Prefs Flow from DataStore + Local Category
     val uiState: StateFlow<UiState> = combine(
-        notesRepository.getAllNotes(), // <-- Data now comes directly from Room/Repository
+        notesRepository.getAllNotes(), // Live notes from Room (All notes, unfiltered by selectedCategory)
         userPreferencesRepository.userPreferencesFlow,
-        _categoryFlow
-    ) { notes, prefs, category ->
+        _categoryFlow // Last selected chip state
+    ) { notes, prefs, selectedCategory ->
 
-        // --- Filtering Logic (Moved to ViewModel) ---
-        val filteredNotes = when (category) {
+        // --- Calculation of ALL Available Categories (NEW) ---
+        // Get the list of all unique categories from ALL notes (excluding empty strings)
+        val allAvailableCategories = notes
+            .map { it.category }
+            .distinct()
+            .filter { it.isNotBlank() } // Exclude the internal 'no category' marker
+            .sorted()
+
+        // --- Validation Logic (Existing) ---
+        // Ensures the chip selection resets to "All" if the selected category no longer exists
+        val validatedCategory = if (selectedCategory != "All" && !allAvailableCategories.contains(selectedCategory)) {
+            "All"
+        } else {
+            selectedCategory
+        }
+
+        if (validatedCategory != selectedCategory) {
+            viewModelScope.launch {
+                _categoryFlow.value = validatedCategory
+            }
+        }
+
+        // --- Filtering Logic (Existing) ---
+        val filteredNotes = when (validatedCategory) {
             "All"     -> notes
             "Pinned"  -> notes.filter { it.isPinned }
             "Locked"  -> notes.filter { it.isLocked }
-            else      -> notes.filter { it.category == category }
+            else      -> notes.filter { it.category == validatedCategory }
         }
 
         UiState(
-            allNotes = filteredNotes, // Filtered list based on category
-            selectedCategory = category,
-            isGridView = prefs.isGridView // Controlled by DataStore
+            allNotes = filteredNotes, // Filtered list goes to the grid
+            selectedCategory = validatedCategory, // Validated state
+            isGridView = prefs.isGridView,
+            allAvailableCategories = allAvailableCategories // <--- EXPOSED: Full list goes to the CategoryBar
         )
     }.stateIn(
         scope = viewModelScope,
@@ -54,13 +75,13 @@ class HomeScreenViewModel @Inject constructor(
     data class UiState(
         val allNotes: List<Note> = emptyList(),
         val selectedCategory: String = "All",
-        val isGridView: Boolean = true
+        val isGridView: Boolean = true,
+        val allAvailableCategories: List<String> = emptyList() // <--- NEW PROPERTY
     )
 
     // 2. Actions
 
     fun toggleGridView() {
-        // Reads current value from state and flips it via DataStore
         val currentIsGrid = uiState.value.isGridView
         viewModelScope.launch {
             userPreferencesRepository.setGridView(!currentIsGrid)

@@ -34,22 +34,13 @@ fun CategoryBar(
     selectedCategory: String,
     onCategorySelect: (String) -> Unit,
     onAddCategoryClick: () -> Unit,
-    // ✨ NEW PARAMETERS: Controls visibility of special chips
-    hasPinnedNotes: Boolean = false,
-    hasLockedNotes: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
-    // ✨ LOGIC UPDATE: Construct list dynamically
-    val displayList = remember(categories, hasPinnedNotes, hasLockedNotes) {
+    // ✨ SIMPLIFIED LOGIC: Construct list with only "All" and user categories
+    val displayList = remember(categories) {
         val list = mutableListOf("All")
-        if (hasPinnedNotes) {
-            list.add("Pinned")
-        }
-        if (hasLockedNotes) {
-            list.add("Locked")
-        }
         list.addAll(categories)
         list
     }

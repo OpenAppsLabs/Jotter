@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -51,11 +52,23 @@ fun NoteCard(
     }
 
     // For List view, we show "Locked Note" text.
-    // For Grid view, we will show the icon in the center instead of text.
     val displayContent = if (isLocked && !isGridView) "Locked Note" else content
 
     val contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     else MaterialTheme.colorScheme.onSurfaceVariant
+
+    // --- CATEGORY DISPLAY LOGIC ---
+    val isCategoryBlank = category.isBlank()
+    val categoryText = if (isCategoryBlank) "UNCATEGORIZED" else category.uppercase()
+
+    // Choose appropriate colors for the footer chip
+    val chipContainerColor = if (isCategoryBlank) MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+    else MaterialTheme.colorScheme.surfaceContainerHigh
+
+    val chipContentColor = if (isCategoryBlank) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+    else MaterialTheme.colorScheme.onSurfaceVariant
+    // --- END CATEGORY DISPLAY LOGIC ---
+
 
     Card(
         modifier = modifier.then(sizeModifier),
@@ -100,7 +113,7 @@ fun NoteCard(
 
                         // Spacer only if we have both icons in this row
                         if (isPinned && (isLocked && !isGridView)) {
-                            Spacer(modifier = Modifier.size(4.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                         }
 
                         // Lock only shows top-right in LIST view
@@ -156,17 +169,18 @@ fun NoteCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
 
+                // ✨ Category Chip (Shows UNCATEGORIZED if category is blank)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .background(chipContainerColor) // Use dynamic background color
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = category.uppercase(),
+                        text = categoryText, // Use the pre-computed text (UNCATEGORIZED or Tag name)
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = chipContentColor, // Use the dynamic content color
                         fontSize = 10.sp
                     )
                 }

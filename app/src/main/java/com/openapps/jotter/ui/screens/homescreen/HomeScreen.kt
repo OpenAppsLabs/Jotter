@@ -47,17 +47,11 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val categories = remember(uiState.allNotes) {
-        uiState.allNotes.map { it.category }.distinct().sorted()
-    }
-    val filteredNotes = remember(uiState.selectedCategory, uiState.allNotes) {
-        when (uiState.selectedCategory) {
-            "All"     -> uiState.allNotes
-            "Pinned"  -> uiState.allNotes.filter { it.isPinned }
-            "Locked"  -> uiState.allNotes.filter { it.isLocked }
-            else      -> uiState.allNotes.filter { it.category == uiState.selectedCategory }
-        }
-    }
+
+    // 🛑 FIX: Remove local category derivation, which relied on the filtered list.
+    // The ViewModel must provide the full category list (allAvailableCategories).
+    // The 'filteredNotes' derivation logic remains, but now uses the validated state from VM.
+
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
@@ -65,7 +59,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text     = "Jotter.",
+                        text     = "Jotter",
                         style    = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -105,12 +99,12 @@ fun HomeScreen(
                 .padding(innerPadding)
         ) {
             CategoryBar(
-                categories          = categories,
+                // ✨ FIX: Pass the full, UNFILTERED list of categories from the ViewModel
+                // Note: The ViewModel must expose a property called `allAvailableCategories`
+                categories          = uiState.allAvailableCategories,
                 selectedCategory    = uiState.selectedCategory,
                 onCategorySelect    = { viewModel.selectCategory(it) },
                 onAddCategoryClick  = onAddCategoryClick,
-                hasPinnedNotes      = uiState.allNotes.any { it.isPinned },
-                hasLockedNotes      = uiState.allNotes.any { it.isLocked },
                 modifier            = Modifier.padding(bottom = 8.dp)
             )
 
@@ -121,7 +115,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalItemSpacing  = 12.dp
             ) {
-                items(filteredNotes, key = { it.id }) { note ->
+                items(uiState.allNotes, key = { it.id }) { note -> // Now using VM's filtered list directly
                     val dateStr = remember(note.updatedTime) {
                         dateFormatter.format(Date(note.updatedTime))
                     }

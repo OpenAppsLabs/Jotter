@@ -75,4 +75,6 @@ class NotesRepositoryImpl @Inject constructor(
     override suspend fun emptyTrash() {
         noteDao.emptyTrash()
     }
+
+    override fun getCategories(): Flow<List<String>> = noteDao.getCategories()
 }
