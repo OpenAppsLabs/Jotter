@@ -2,20 +2,44 @@ package com.openapps.jotter.ui.screens.settingsscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapps.jotter.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
-    // In future: private val userPreferencesRepository: UserPreferencesRepository
+    private val repository: UserPreferencesRepository
 ) : ViewModel() {
 
+    // 1. Convert Repository Flow -> UI State
+    val uiState: StateFlow<UiState> = repository.userPreferencesFlow
+        .map { prefs ->
+            // When we receive data from the repository, loading is done (isLoading = false)
+            UiState(
+                isLoading = false,
+                isDarkMode = prefs.isDarkMode,
+                isTrueBlackEnabled = prefs.isTrueBlackEnabled,
+                isDynamicColor = prefs.isDynamicColor,
+                defaultOpenInEdit = prefs.defaultOpenInEdit,
+                isHapticEnabled = prefs.isHapticEnabled,
+                isBiometricEnabled = prefs.isBiometricEnabled,
+                isSecureMode = prefs.isSecureMode
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            // Start with isLoading = true to prevent UI flicker
+            initialValue = UiState(isLoading = true)
+        )
+
     data class UiState(
+        val isLoading: Boolean = true, // Added loading state
         val isDarkMode: Boolean = false,
         val isTrueBlackEnabled: Boolean = false,
         val isDynamicColor: Boolean = true,
@@ -25,52 +49,41 @@ class SettingsScreenViewModel @Inject constructor(
         val isSecureMode: Boolean = false
     )
 
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
-
-    init {
-        loadSettings()
-    }
-
-    private fun loadSettings() {
-        viewModelScope.launch {
-            // Simulate loading preferences from DataStore
-            // For now, we rely on the default values in UiState
-        }
-    }
+    // 2. User Actions -> Call Repository
 
     fun updateDarkMode(isEnabled: Boolean) {
-        _uiState.update { it.copy(isDarkMode = isEnabled) }
-        // save to preferences
+        viewModelScope.launch { repository.setDarkMode(isEnabled) }
     }
 
     fun updateTrueBlackMode(isEnabled: Boolean) {
-        _uiState.update { it.copy(isTrueBlackEnabled = isEnabled) }
+        viewModelScope.launch { repository.setTrueBlack(isEnabled) }
     }
 
     fun updateDynamicColor(isEnabled: Boolean) {
-        _uiState.update { it.copy(isDynamicColor = isEnabled) }
+        viewModelScope.launch { repository.setDynamicColor(isEnabled) }
     }
 
     fun updateDefaultOpenInEdit(isEnabled: Boolean) {
-        _uiState.update { it.copy(defaultOpenInEdit = isEnabled) }
+        viewModelScope.launch { repository.setDefaultOpenInEdit(isEnabled) }
     }
 
     fun updateHapticEnabled(isEnabled: Boolean) {
-        _uiState.update { it.copy(isHapticEnabled = isEnabled) }
+        viewModelScope.launch { repository.setHaptic(isEnabled) }
     }
 
     fun updateBiometricEnabled(isEnabled: Boolean) {
-        _uiState.update { it.copy(isBiometricEnabled = isEnabled) }
+        viewModelScope.launch { repository.setBiometric(isEnabled) }
     }
 
     fun updateSecureMode(isEnabled: Boolean) {
-        _uiState.update { it.copy(isSecureMode = isEnabled) }
+        viewModelScope.launch { repository.setSecureMode(isEnabled) }
     }
 
     fun clearAllData() {
         viewModelScope.launch {
-            // Logic to wipe database and preferences
+            repository.clearAllData()
+            // TODO: In the future, add call to clear Room Database here:
+            // noteRepository.clearAllNotes()
         }
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -152,6 +153,7 @@ fun NoteDetailScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
+                    // EditViewButton is hidden if archived/trashed
                     if (uiState.isNotePersisted && !isArchivedOrTrashed) {
                         EditViewButton(
                             isEditing = !isViewMode,
@@ -185,6 +187,7 @@ fun NoteDetailScreen(
                 },
                 actions = {
                     if (isArchivedOrTrashed) {
+                        // Show Restore Button
                         Surface(
                             onClick = { showRestoreNoteDialog = true },
                             shape = CircleShape,
@@ -202,6 +205,7 @@ fun NoteDetailScreen(
                             }
                         }
                     } else if (isViewMode) {
+                        // Show Delete Button
                         Surface(
                             onClick = { showDeleteDialog = true },
                             shape = CircleShape,
@@ -218,7 +222,7 @@ fun NoteDetailScreen(
                             }
                         }
                     } else {
-                        // SAVE BUTTON
+                        // Show SAVE BUTTON
                         Surface(
                             onClick = {
                                 viewModel.saveNote()
@@ -250,6 +254,7 @@ fun NoteDetailScreen(
             )
         },
         bottomBar = {
+            // PinLockBar is hidden if archived/trashed
             val showBottomBar = isViewMode && uiState.isNotePersisted && !isArchivedOrTrashed
 
             AnimatedVisibility(
@@ -295,7 +300,8 @@ fun NoteDetailScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
-                        .clickable { if (!isViewMode) showCategorySheet = true }
+                        // Only allow category change if NOT in view mode AND NOT archived/trashed
+                        .clickable { if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
@@ -325,6 +331,26 @@ fun NoteDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
+                    // Show Archive/Trash Icon (Optional Metadata)
+                    if (uiState.isArchived) {
+                        Icon(
+                            imageVector = Icons.Default.Archive,
+                            contentDescription = "Archived",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    if (uiState.isTrashed) {
+                        // Icon used for metadata display when note is trashed
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Trashed",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
 
                     Text(
                         text = dateString,
@@ -340,7 +366,8 @@ fun NoteDetailScreen(
             BasicTextField(
                 value = uiState.title,
                 onValueChange = { viewModel.updateTitle(it) },
-                readOnly = isViewMode,
+                // ✨ FIX: Read-only if in View Mode OR if Archived/Trashed
+                readOnly = isViewMode || isArchivedOrTrashed,
                 textStyle = TextStyle(
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
@@ -350,7 +377,7 @@ fun NoteDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {
-                        if (uiState.title.isEmpty() && !isViewMode) {
+                        if (uiState.title.isEmpty() && !isViewMode && !isArchivedOrTrashed) {
                             Text(
                                 text = "Untitled",
                                 style = TextStyle(
@@ -371,7 +398,8 @@ fun NoteDetailScreen(
             BasicTextField(
                 value = uiState.content,
                 onValueChange = { viewModel.updateContent(it) },
-                readOnly = isViewMode,
+                // ✨ FIX: Read-only if in View Mode OR if Archived/Trashed
+                readOnly = isViewMode || isArchivedOrTrashed,
                 textStyle = TextStyle(
                     fontSize = 18.sp,
                     lineHeight = 28.sp,
@@ -382,7 +410,7 @@ fun NoteDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {
-                        if (uiState.content.isEmpty() && !isViewMode) {
+                        if (uiState.content.isEmpty() && !isViewMode && !isArchivedOrTrashed) {
                             Text(
                                 text = "Start typing...",
                                 style = TextStyle(
