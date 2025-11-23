@@ -55,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -91,10 +92,8 @@ fun NoteDetailScreen(
     var showRestoreNoteDialog by remember { mutableStateOf(false) }
     var pendingDiscard by remember { mutableStateOf(false) }
 
-    // Helper for categories (FIXED: Removed sampleNotes dependency)
-    val availableCategories = remember {
-        listOf("Work", "Personal", "Ideas", "Shopping").sorted()
-    }
+    // Helper for categories (FIXED: Now observing live database data)
+    val availableCategories by viewModel.availableCategories.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -292,24 +291,37 @@ fun NoteDetailScreen(
             // --- METADATA ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                // REMOVED: Arrangement.SpaceBetween
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 1. Category Chip (Placeholder Logic)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
-                        // Only allow category change if NOT in view mode AND NOT archived/trashed
+                        .background(
+                            // Use a different color/opacity if uncategorized (blank)
+                            if (uiState.category.isBlank()) {
+                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+                            } else {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            }
+                        )
+                        // Allow clicking only if NOT archived/trashed
                         .clickable { if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = uiState.category.uppercase(),
+                        // ✨ FIX: Conditional display for placeholder text
+                        text = if (uiState.category.isBlank()) "UNCATEGORIZED" else uiState.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = if (uiState.category.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primary
                     )
                 }
+
+                // 2. Insert Flexible Spacer to push right content to the edge
+                Spacer(modifier = Modifier.weight(1f))
+
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (uiState.isPinned) {
@@ -464,7 +476,7 @@ fun NoteDetailScreen(
         DeleteNoteDialog(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
-                showDeleteDialog = false
+                showDiscardDialog = false
                 viewModel.deleteNote()
                 onBackClick()
             }

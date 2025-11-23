@@ -28,4 +28,6 @@ interface NotesRepository {
     // --- Delete Operations ---
     suspend fun deleteNote(note: Note)
     suspend fun emptyTrash()
+
+    fun getCategories(): Flow<List<String>>
 }

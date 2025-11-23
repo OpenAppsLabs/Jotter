@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,16 +48,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel  // <-- UPDATED IMPORT
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyStaggeredGridState
+
+// NOTE: All reorderable imports have been removed.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCategoryScreen(
     onBackClick: () -> Unit,
-    viewModel: AddCategoryScreenViewModel = hiltViewModel()   // <-- uses the new import
+    viewModel: AddCategoryScreenViewModel = hiltViewModel()
 ) {
     var newCategory by remember { mutableStateOf("") }
 
@@ -66,16 +65,7 @@ fun AddCategoryScreen(
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val maxCharLimit = 15
 
-    // Setup Lazy Grid State
-    val lazyGridState = rememberLazyStaggeredGridState()
-
-    // Setup Reorderable State
-    val reorderableState = rememberReorderableLazyStaggeredGridState(lazyGridState) { from, to ->
-        val fromIndex = from.index - 2
-        val toIndex   = to.index   - 2
-
-        viewModel.reorderCategories(fromIndex, toIndex)
-    }
+    // NOTE: LazyGridState and ReorderableState removed.
 
     val transparentColors = TextFieldDefaults.colors(
         focusedContainerColor    = Color.Transparent,
@@ -124,7 +114,6 @@ fun AddCategoryScreen(
         }
     ) { innerPadding ->
         LazyVerticalStaggeredGrid(
-            state                = lazyGridState,
             columns              = StaggeredGridCells.Fixed(2),
             modifier             = Modifier
                 .padding(innerPadding)
@@ -165,7 +154,7 @@ fun AddCategoryScreen(
                             singleLine   = true,
                             modifier     = Modifier
                                 .weight(1f)
-                                .padding(bottom = 4.dp, start = 8.dp)
+                                .padding(bottom = 4.dp, start = 4.dp)
                         )
 
                         Box(
@@ -209,7 +198,7 @@ fun AddCategoryScreen(
 
             item(span = StaggeredGridItemSpan.FullLine) {
                 Text(
-                    text         = "EXISTING TAGS (Long press to reorder)",
+                    text         = "EXISTING TAGS (Alphabetically Sorted)",
                     style        = MaterialTheme.typography.labelMedium,
                     fontWeight   = FontWeight.Bold,
                     color        = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -218,22 +207,13 @@ fun AddCategoryScreen(
                 )
             }
 
+            // CategoryChip rendering is now simplified
             items(categories, key = { it }) { category ->
-                val itemIndex = categories.indexOf(category) + 1
-
-                ReorderableItem(reorderableState, key = category) { isDragging ->
-                    val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "drag")
-
-                    Box(modifier = Modifier.longPressDraggableHandle()) {
-                        CategoryChip(
-                            text       = category,
-                            elevation  = elevation,
-                            onDelete   = { viewModel.removeCategory(category) },
-                            isDragging = isDragging,
-                            itemIndex  = itemIndex
-                        )
-                    }
-                }
+                CategoryChip(
+                    text       = category,
+                    elevation  = 0.dp,
+                    onDelete   = { viewModel.removeCategory(category) },
+                )
             }
 
             item(span = StaggeredGridItemSpan.FullLine) {
@@ -248,8 +228,7 @@ fun CategoryChip(
     text       : String,
     elevation  : androidx.compose.ui.unit.Dp = 0.dp,
     onDelete   : () -> Unit,
-    isDragging : Boolean = false,
-    itemIndex  : Int     = 0
+    // Removed unused parameters
 ) {
     Surface(
         color         = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -262,28 +241,15 @@ fun CategoryChip(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier          = Modifier.fillMaxWidth()
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp) // ✨ NEW: Add general starting padding here
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier          = Modifier.weight(1f)
             ) {
-                Box(
-                    modifier         = Modifier.width(46.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (isDragging) {
-                        Text(
-                            text       = "$itemIndex.",
-                            style      = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary,
-                            modifier   = Modifier.padding(start = 16.dp)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.fillMaxSize())
-                    }
-                }
+                // REMOVED: Fixed width Box/Spacer for the old Reorder Index
 
                 Text(
                     text      = text,

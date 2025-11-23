@@ -12,7 +12,7 @@ data class Note(
     val id: Int = 0,
     val title: String = "",
     val content: String = "",
-    val category: String = "Uncategorized",
+    val category: String = "",
     val updatedTime: Long = System.currentTimeMillis(),
     val isPinned: Boolean = false,
     val isLocked: Boolean = false,
