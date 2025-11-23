@@ -73,6 +73,17 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // ✨ FIX: Check loading state first
+    // This prevents the UI from showing default "false" values while DataStore is reading
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+        )
+        return // Stop here, don't render the Scaffold yet
+    }
+
     // Dialog visibility remains local UI state
     var showClearAllDialog by remember { mutableStateOf(false) }
 

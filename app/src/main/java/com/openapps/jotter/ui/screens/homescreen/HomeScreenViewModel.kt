@@ -3,19 +3,43 @@ package com.openapps.jotter.ui.screens.homescreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapps.jotter.data.Note
+import com.openapps.jotter.data.repository.UserPreferencesRepository
 import com.openapps.jotter.data.sampleNotes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    // In future: private val notesRepository: NotesRepository
+    private val repository: UserPreferencesRepository
 ) : ViewModel() {
+
+    // Internal flows for data that isn't in DataStore yet (Notes & Category)
+    private val _notesFlow = MutableStateFlow(sampleNotes)
+    private val _categoryFlow = MutableStateFlow("All")
+
+    // 1. Reactive UI State
+    // Combines DataStore prefs + Local Notes + Local Category Selection
+    val uiState: StateFlow<UiState> = combine(
+        repository.userPreferencesFlow,
+        _notesFlow,
+        _categoryFlow
+    ) { prefs, notes, category ->
+        UiState(
+            allNotes = notes,
+            selectedCategory = category,
+            isGridView = prefs.isGridView // <--- Controlled by DataStore
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = UiState()
+    )
 
     data class UiState(
         val allNotes: List<Note> = emptyList(),
@@ -23,47 +47,33 @@ class HomeScreenViewModel @Inject constructor(
         val isGridView: Boolean = true
     )
 
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
-
-    init {
-        loadMockNotes()
-    }
-
-    private fun loadMockNotes() {
-        viewModelScope.launch {
-            // load mock data
-            _uiState.update {
-                it.copy(allNotes = sampleNotes)
-            }
-        }
-    }
+    // 2. Actions
 
     fun toggleGridView() {
-        _uiState.update {
-            it.copy(isGridView = !it.isGridView)
+        // We read the current value from the reactive state and flip it
+        val currentIsGrid = uiState.value.isGridView
+        viewModelScope.launch {
+            repository.setGridView(!currentIsGrid)
         }
     }
 
     fun selectCategory(category: String) {
-        _uiState.update {
-            it.copy(selectedCategory = category)
-        }
+        _categoryFlow.value = category
     }
 
     fun onNoteClicked(noteId: Int) {
-        // Navigation event or further logic
+        // Navigation event handled by UI callback
     }
 
     fun onAddNoteClick() {
-        // Navigation event or logic
+        // Navigation event handled by UI callback
     }
 
     fun onAddCategoryClick() {
-        // Navigation event or logic
+        // Navigation event handled by UI callback
     }
 
     fun onSettingsClick() {
-        // Navigation event or logic
+        // Navigation event handled by UI callback
     }
 }

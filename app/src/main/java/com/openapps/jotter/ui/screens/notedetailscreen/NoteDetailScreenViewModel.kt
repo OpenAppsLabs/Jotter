@@ -50,6 +50,8 @@ class NoteDetailViewModel @Inject constructor(
     private fun loadNote(id: Int) {
         viewModelScope.launch {
             // Simulate fetching from DB using sampleNotes
+            // NOTE: You must ensure your 'Note' data class in the data layer has
+            //       'isArchived' and 'isTrashed' properties for this to work.
             val note = sampleNotes.find { it.id == id }
             if (note != null) {
                 _uiState.update {
@@ -60,9 +62,9 @@ class NoteDetailViewModel @Inject constructor(
                         category = note.category,
                         isPinned = note.isPinned,
                         isLocked = note.isLocked,
-                        // Assuming sample data doesn't have archived/trashed yet, defaulting to false
-                        isArchived = false,
-                        isTrashed = false,
+                        // ✨ FIX: Load the actual archived/trashed status from the mock data
+                        isArchived = note.isArchived,
+                        isTrashed = note.isTrashed,
                         lastEdited = note.updatedTime,
                         isNotePersisted = true
                     )

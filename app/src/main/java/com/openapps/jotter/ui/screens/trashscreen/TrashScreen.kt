@@ -119,9 +119,10 @@ fun TrashScreen(
                 }
             } else {
                 LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(2),
+                    // ✨ FIX: Apply the global view state from the ViewModel
+                    columns = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalItemSpacing = 12.dp
                 ) {
@@ -137,7 +138,8 @@ fun TrashScreen(
                             category = note.category,
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
-                            isGridView = true,
+                            // ✨ FIX: Use the global view state for the card layout
+                            isGridView = uiState.isGridView,
                             onClick = {
                                 viewModel.onNoteClicked(note.id)
                                 onNoteClick(note.id)

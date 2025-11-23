@@ -75,4 +75,6 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    implementation(libs.androidx.datastore.preferences)
 }
