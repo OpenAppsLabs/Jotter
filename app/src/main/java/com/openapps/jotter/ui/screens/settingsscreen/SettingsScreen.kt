@@ -46,6 +46,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +57,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.ClearAllDataDialog
 import com.openapps.jotter.ui.components.EditViewButton
-// Removed import: com.openapps.jotter.ui.components.Header
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,22 +68,15 @@ fun SettingsScreen(
     onManageTagsClick: () -> Unit,
     onArchiveClick: () -> Unit,
     onTrashClick: () -> Unit,
-    onBackupRestoreClick: () -> Unit
+    onBackupRestoreClick: () -> Unit,
+    viewModel: SettingsScreenViewModel = hiltViewModel()
 ) {
-    // Dummy state
-    var isDarkMode by remember { mutableStateOf(false) }
-    var isDynamicColor by remember { mutableStateOf(true) }
-    var isBiometricEnabled by remember { mutableStateOf(false) }
-    var isSecureMode by remember { mutableStateOf(false) }
-    var isHapticEnabled by remember { mutableStateOf(true) }
-    var isTrueBlackEnabled by remember { mutableStateOf(false) }
-    var showClearAllDialog by remember { mutableStateOf(false) }
-    var defaultOpenInEdit by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
 
-    val trashCount = 3
+    // Dialog visibility remains local UI state
+    var showClearAllDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        // ✨ REFACTORED: Local CenterAlignedTopAppBar definition
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -93,7 +87,6 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    // Circular Back Button Logic (Replicated from Header)
                     Surface(
                         onClick = onBackClick,
                         shape = CircleShape,
@@ -137,8 +130,8 @@ fun SettingsScreen(
                         icon = Icons.Default.DarkMode,
                         title = "Dark Theme",
                         subtitle = "Reduce eye strain",
-                        checked = isDarkMode,
-                        onCheckedChange = { isDarkMode = it }
+                        checked = uiState.isDarkMode,
+                        onCheckedChange = { viewModel.updateDarkMode(it) }
                     )
                     TinyGap()
 
@@ -146,8 +139,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Brightness2,
                         title = "True Black Mode",
                         subtitle = "Use pure black for OLED displays",
-                        checked = isTrueBlackEnabled,
-                        onCheckedChange = { isTrueBlackEnabled = it }
+                        checked = uiState.isTrueBlackEnabled,
+                        onCheckedChange = { viewModel.updateTrueBlackMode(it) }
                     )
                     TinyGap()
 
@@ -155,8 +148,8 @@ fun SettingsScreen(
                         icon = Icons.Default.ColorLens,
                         title = "Dynamic Colors",
                         subtitle = "Adapt to wallpaper",
-                        checked = isDynamicColor,
-                        onCheckedChange = { isDynamicColor = it }
+                        checked = uiState.isDynamicColor,
+                        onCheckedChange = { viewModel.updateDynamicColor(it) }
                     )
 
                     TinyGap()
@@ -164,8 +157,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Edit,
                         title = "Default View",
                         subtitle = "Default open mode",
-                        isEditDefault = defaultOpenInEdit,
-                        onToggleEditDefault = { defaultOpenInEdit = it }
+                        isEditDefault = uiState.defaultOpenInEdit,
+                        onToggleEditDefault = { viewModel.updateDefaultOpenInEdit(it) }
                     )
                 }
             }
@@ -201,8 +194,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Vibration,
                         title = "Haptic Feedback",
                         subtitle = "Vibrate on touch interactions",
-                        checked = isHapticEnabled,
-                        onCheckedChange = { isHapticEnabled = it }
+                        checked = uiState.isHapticEnabled,
+                        onCheckedChange = { viewModel.updateHapticEnabled(it) }
                     )
                 }
             }
@@ -214,8 +207,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Fingerprint,
                         title = "Biometric Unlock",
                         subtitle = "Require fingerprint to open",
-                        checked = isBiometricEnabled,
-                        onCheckedChange = { isBiometricEnabled = it }
+                        checked = uiState.isBiometricEnabled,
+                        onCheckedChange = { viewModel.updateBiometricEnabled(it) }
                     )
                     TinyGap()
 
@@ -223,8 +216,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Security,
                         title = "Secure Screen",
                         subtitle = "Hide content in recent apps",
-                        checked = isSecureMode,
-                        onCheckedChange = { isSecureMode = it }
+                        checked = uiState.isSecureMode,
+                        onCheckedChange = { viewModel.updateSecureMode(it) }
                     )
                 }
             }
@@ -240,7 +233,6 @@ fun SettingsScreen(
                     )
                     TinyGap()
 
-                    // DESTRUCTIVE ACTION
                     SettingsItemArrow(
                         icon = Icons.Default.DeleteForever,
                         title = "Clear All Local Data",
@@ -269,18 +261,18 @@ fun SettingsScreen(
                     )
                 }
             }
-            // --- FINAL SPACER ---
+
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
-        // After LazyColumn
+
         if (showClearAllDialog) {
             ClearAllDataDialog(
                 onDismiss = { showClearAllDialog = false },
                 onConfirm = {
                     showClearAllDialog = false
-                    // TODO: clear all data logic here
+                    viewModel.clearAllData()
                 }
             )
         }
@@ -288,7 +280,6 @@ fun SettingsScreen(
 }
 
 // --- Helper Composables ---
-// NOTE: These were previously defined below the main composable and are kept for completeness.
 
 @Composable
 fun TinyGap() {
@@ -415,7 +406,6 @@ fun SettingsItemEditView(
             }
         }
 
-        // Use the existing EditViewButton component
         EditViewButton(
             isEditing = isEditDefault,
             onToggle = { onToggleEditDefault(!isEditDefault) }

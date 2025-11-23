@@ -26,17 +26,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.openapps.jotter.data.sampleNotes
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.EmptyTrashDialog
 import com.openapps.jotter.ui.components.NoteCard
 import java.text.SimpleDateFormat
@@ -49,20 +48,12 @@ import androidx.compose.foundation.layout.Column as ComposeColumn
 @Composable
 fun TrashScreen(
     onBackClick: () -> Unit,
-    // ✨ FIX 1: Add navigation callback to allow opening note
-    onNoteClick: (Int) -> Unit = {}
+    onNoteClick: (Int) -> Unit = {},
+    viewModel: TrashScreenViewModel = hiltViewModel()
 ) {
-    // State to control dialog visibility
-    var showEmptyTrashDialog by remember { mutableStateOf(false) }
-
-    // Removed: showRestoreNoteDialog and noteIdToRestore states
-
-    // Filter sampleNotes to only show trashed notes (and exclude archived ones)
-    val trashedNotes = remember {
-        sampleNotes.filter { it.isTrashed && !it.isArchived }
-    }
-
-    // Helper for Date Formatting
+    val uiState by viewModel.uiState.collectAsState()
+    val trashedNotes = uiState.trashedNotes
+    val showDialog = uiState.showEmptyTrashDialog
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
@@ -76,7 +67,6 @@ fun TrashScreen(
                     )
                 },
                 navigationIcon = {
-                    // Circular Back Button Logic (Replicated from Header)
                     Surface(
                         onClick = onBackClick,
                         shape = CircleShape,
@@ -105,7 +95,7 @@ fun TrashScreen(
         floatingActionButton = {
             if (trashedNotes.isNotEmpty()) {
                 ExtendedFloatingActionButton(
-                    onClick = { showEmptyTrashDialog = true },
+                    onClick = { viewModel.onEmptyTrashClicked() },
                     icon = { Icon(Icons.Default.DeleteForever, contentDescription = null) },
                     text = { Text("Empty Trash") },
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -136,7 +126,6 @@ fun TrashScreen(
                     verticalItemSpacing = 12.dp
                 ) {
                     items(trashedNotes, key = { it.id }) { note ->
-
                         val dateStr = remember(note.updatedTime) {
                             dateFormatter.format(Date(note.updatedTime))
                         }
@@ -149,28 +138,24 @@ fun TrashScreen(
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
                             isGridView = true,
-                            // ✨ FIX 2: Navigate to detail screen on click
-                            onClick = { onNoteClick(note.id) }
+                            onClick = {
+                                viewModel.onNoteClicked(note.id)
+                                onNoteClick(note.id)
+                            }
                         )
                     }
                 }
             }
         }
 
-        if (showEmptyTrashDialog) {
+        if (showDialog) {
             EmptyTrashDialog(
-                onDismiss = { showEmptyTrashDialog = false },
-                onConfirm = {
-                    // TODO: Actual delete logic here
-                    showEmptyTrashDialog = false
-                }
+                onDismiss = { viewModel.dismissEmptyTrashDialog() },
+                onConfirm = { viewModel.confirmEmptyTrash() }
             )
         }
-
-        // Removed Restore Dialog rendering logic
     }
 }
-
 
 @Composable
 private fun EmptyTrashContent() {

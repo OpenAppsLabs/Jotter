@@ -1,14 +1,12 @@
 package com.openapps.jotter.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.screens.addcategoryscreen.AddCategoryScreen
 import com.openapps.jotter.ui.screens.archivescreen.ArchiveScreen
 import com.openapps.jotter.ui.screens.backuprestore.BackupRestoreScreen
@@ -84,46 +82,14 @@ fun AppNavHost(
                     defaultValue = -1 // Indicates a new note
                 }
             )
-        ) { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getInt(AppRoutes.NOTE_ID_KEY)
-
-            // --- MOCK DATA LOOKUP (CRITICAL) ---
-            val noteToView = remember(noteId) {
-                sampleNotes.find { it.id == noteId }
-            }
-
-            // Only pass the ID if it's an existing note
-            val noteIdArg = noteId?.takeIf { it != -1 }
-
-            // Define the Unarchive action logic (pops back after unarchiving)
-            val onUnarchive: (Int) -> Unit = { id ->
-                println("MOCK UNARCHIVE: Note ID $id unarchived.")
-                navController.popBackStack()
-            }
-
+        ) {
             // 💡 Use NoteDetailScreen
+            // ViewModel handles data loading using SavedStateHandle
             NoteDetailScreen(
-                noteId = noteIdArg,
-                initialTitle = noteToView?.title ?: "",
-                initialContent = noteToView?.content ?: "",
-
-                // Pass Metadata Fields
-                category = noteToView?.category ?: "Uncategorized",
-                isPinned = noteToView?.isPinned ?: false,
-                isLocked = noteToView?.isLocked ?: false,
-                isArchived = noteToView?.isArchived ?: false,
-                isTrashed = noteToView?.isTrashed ?: false,
-                lastEdited = noteToView?.updatedTime ?: System.currentTimeMillis(),
-
                 onBackClick = { navController.popBackStack() },
-                onSave = { title, content ->
-                    // TODO: Mock save/update logic here
-                    println("MOCK SAVE: Note ID $noteIdArg saved with title: $title")
-                },
                 onManageCategoryClick = {
                     navController.navigate(AppRoutes.ADD_CATEGORY)
-                },
-                onUnarchiveClick = onUnarchive
+                }
             )
         }
     }

@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.data.sampleNotes
 import com.openapps.jotter.ui.components.CategorySheet
 import com.openapps.jotter.ui.components.DeleteNoteDialog
@@ -75,38 +77,21 @@ import java.util.Locale
 @Composable
 fun NoteDetailScreen(
     modifier: Modifier = Modifier,
-    noteId: Int? = null,
-    initialTitle: String = "",
-    initialContent: String = "",
-    category: String = "Uncategorized",
-    isPinned: Boolean = false,
-    isLocked: Boolean = false,
-    isArchived: Boolean = false,
-    isTrashed: Boolean = false,
-    lastEdited: Long = System.currentTimeMillis(),
     onBackClick: () -> Unit,
-    onSave: (title: String, content: String) -> Unit,
     onManageCategoryClick: () -> Unit = {},
-    onUnarchiveClick: (Int) -> Unit = { id -> }
+    viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
-    // 1. STATE
-    var title by remember(noteId) { mutableStateOf(initialTitle) }
-    var content by remember(noteId) { mutableStateOf(initialContent) }
-    var currentCategory by remember(noteId) { mutableStateOf(category) }
+    // 1. VIEWMODEL STATE
+    val uiState by viewModel.uiState.collectAsState()
 
-    // UI State for immediate visual feedback
-    var currentIsPinned by remember(noteId) { mutableStateOf(isPinned) }
-    var currentIsLocked by remember(noteId) { mutableStateOf(isLocked) }
-
-    var isNotePersisted by remember(noteId) { mutableStateOf(noteId != null) }
-
-    // Dialog & Keyboard State
+    // Dialog & Local UI State
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
-    var pendingDiscard by remember { mutableStateOf(false) }
     var showRestoreNoteDialog by remember { mutableStateOf(false) }
+    var pendingDiscard by remember { mutableStateOf(false) }
 
+    // Helper for categories (In real app, fetch from VM/Repository)
     val availableCategories = remember {
         sampleNotes.map { it.category }.distinct().sorted()
     }
@@ -114,22 +99,17 @@ fun NoteDetailScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
-    val isEditing = noteId != null
+    // 2. VIEW MODE LOGIC
+    // We default to Edit mode if it's a new note (not persisted), otherwise View mode
+    var isViewMode by remember(uiState.isNotePersisted) {
+        mutableStateOf(uiState.isNotePersisted)
+    }
 
-    // ✨ FIX: Only track Title, Content, and Category as "unsaved changes"
-    // Pin/Lock toggles are treated as independent actions.
-    val isContentModified = (title.trim() != initialTitle.trim()) ||
-            (content.trim() != initialContent.trim()) ||
-            (currentCategory != category)
+    // Check for modifications to enable Save button
+    val isSaveEnabled = !isViewMode && (uiState.title.isNotBlank() || uiState.content.isNotBlank())
 
-    val isSaveEnabled = isContentModified && (title.isNotBlank() || content.isNotBlank())
-
-    // 2. VIEW/EDIT MODE
-    var isViewMode by remember { mutableStateOf(isEditing) }
-    if (!isEditing && !isContentModified) isViewMode = false
-
-    val dateString = remember(lastEdited) {
-        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(lastEdited))
+    val dateString = remember(uiState.lastEdited) {
+        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(uiState.lastEdited))
     }
 
     LaunchedEffect(isImeVisible) {
@@ -141,7 +121,8 @@ fun NoteDetailScreen(
 
     fun handleBack() {
         if (isSaveEnabled) {
-            // Case 1: Has unsaved changes -> Prompt Dialog
+            // Case 1: Unsaved changes exist (New OR Existing note)
+            // Trigger Discard Dialog logic
             if (isImeVisible) {
                 pendingDiscard = true
                 keyboardController?.hide()
@@ -149,12 +130,12 @@ fun NoteDetailScreen(
                 showDiscardDialog = true
             }
         } else {
-            // Case 2: No changes -> Check logic
-            if (!isViewMode && isNotePersisted) {
-                // If we are in Edit Mode on an existing note, just cancel edit (go to View Mode)
+            // Case 2: No changes logic
+            if (!isViewMode && uiState.isNotePersisted) {
+                // If viewing an existing note in edit mode but no changes made, just switch to view
                 isViewMode = true
             } else {
-                // Otherwise (View Mode OR New Note), actually go back
+                // Otherwise exit screen (New note with no content, or View Mode)
                 onBackClick()
             }
         }
@@ -164,15 +145,14 @@ fun NoteDetailScreen(
         handleBack()
     }
 
-    // Determine what action should appear on the right side of the Header
-    val isArchivedOrTrashed = isArchived || isTrashed
+    val isArchivedOrTrashed = uiState.isArchived || uiState.isTrashed
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    if (isNotePersisted && !isArchivedOrTrashed) {
+                    if (uiState.isNotePersisted && !isArchivedOrTrashed) {
                         EditViewButton(
                             isEditing = !isViewMode,
                             onToggle = { isViewMode = !isViewMode }
@@ -193,7 +173,7 @@ fun NoteDetailScreen(
                         modifier = Modifier.padding(start = 12.dp).size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            val showCloseIcon = !isViewMode || isSaveEnabled
+                            val showCloseIcon = !isViewMode
                             Icon(
                                 imageVector = if (showCloseIcon) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
                                 contentDescription = if (showCloseIcon) "Close" else "Back",
@@ -221,7 +201,7 @@ fun NoteDetailScreen(
                                 )
                             }
                         }
-                    } else if (isViewMode && !isSaveEnabled) {
+                    } else if (isViewMode) {
                         Surface(
                             onClick = { showDeleteDialog = true },
                             shape = CircleShape,
@@ -238,14 +218,12 @@ fun NoteDetailScreen(
                             }
                         }
                     } else {
+                        // SAVE BUTTON
                         Surface(
                             onClick = {
-                                if (isSaveEnabled) {
-                                    onSave(title.trim(), content.trim())
-                                    isNotePersisted = true
-                                    isViewMode = true
-                                    keyboardController?.hide()
-                                }
+                                viewModel.saveNote()
+                                isViewMode = true // Switch to view mode on save
+                                keyboardController?.hide()
                             },
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -272,7 +250,7 @@ fun NoteDetailScreen(
             )
         },
         bottomBar = {
-            val showBottomBar = isViewMode && isNotePersisted && !isArchivedOrTrashed
+            val showBottomBar = isViewMode && uiState.isNotePersisted && !isArchivedOrTrashed
 
             AnimatedVisibility(
                 visible = showBottomBar,
@@ -287,11 +265,10 @@ fun NoteDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     PinLockBar(
-                        isPinned = currentIsPinned,
-                        isLocked = currentIsLocked,
-                        // ✨ FIX: Direct updates (independant of save logic)
-                        onTogglePin = { currentIsPinned = !currentIsPinned },
-                        onToggleLock = { currentIsLocked = !currentIsLocked }
+                        isPinned = uiState.isPinned,
+                        isLocked = uiState.isLocked,
+                        onTogglePin = { viewModel.togglePin() },
+                        onToggleLock = { viewModel.toggleLock() }
                     )
                 }
             }
@@ -322,7 +299,7 @@ fun NoteDetailScreen(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = currentCategory.uppercase(),
+                        text = uiState.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -330,8 +307,7 @@ fun NoteDetailScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // ✨ FIX: Use dynamic state to show correct icons in metadata row
-                    if (currentIsPinned) {
+                    if (uiState.isPinned) {
                         Icon(
                             imageVector = Icons.Default.PushPin,
                             contentDescription = "Pinned",
@@ -340,7 +316,7 @@ fun NoteDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    if (currentIsLocked) {
+                    if (uiState.isLocked) {
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = "Locked",
@@ -362,8 +338,8 @@ fun NoteDetailScreen(
 
             // --- TITLE ---
             BasicTextField(
-                value = title,
-                onValueChange = { title = it },
+                value = uiState.title,
+                onValueChange = { viewModel.updateTitle(it) },
                 readOnly = isViewMode,
                 textStyle = TextStyle(
                     fontSize = 30.sp,
@@ -374,7 +350,7 @@ fun NoteDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {
-                        if (title.isEmpty() && !isViewMode) {
+                        if (uiState.title.isEmpty() && !isViewMode) {
                             Text(
                                 text = "Untitled",
                                 style = TextStyle(
@@ -393,8 +369,8 @@ fun NoteDetailScreen(
 
             // --- BODY ---
             BasicTextField(
-                value = content,
-                onValueChange = { content = it },
+                value = uiState.content,
+                onValueChange = { viewModel.updateContent(it) },
                 readOnly = isViewMode,
                 textStyle = TextStyle(
                     fontSize = 18.sp,
@@ -406,7 +382,7 @@ fun NoteDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {
-                        if (content.isEmpty() && !isViewMode) {
+                        if (uiState.content.isEmpty() && !isViewMode) {
                             Text(
                                 text = "Start typing...",
                                 style = TextStyle(
@@ -428,9 +404,9 @@ fun NoteDetailScreen(
     if (showCategorySheet) {
         CategorySheet(
             categories = availableCategories,
-            selectedCategory = currentCategory,
+            selectedCategory = uiState.category,
             onCategorySelect = { newCategory ->
-                currentCategory = newCategory
+                viewModel.updateCategory(newCategory)
                 isViewMode = false
             },
             onManageCategoriesClick = onManageCategoryClick,
@@ -444,13 +420,12 @@ fun NoteDetailScreen(
             onDismiss = { showDiscardDialog = false },
             onConfirm = {
                 showDiscardDialog = false
-                if (isNotePersisted) {
-                    title = initialTitle
-                    content = initialContent
-                    currentCategory = category
-                    // No need to reset pin/lock here as they are independent
+                if (uiState.isNotePersisted) {
+                    // Existing Note: Undo changes and stay on screen in View Mode
+                    viewModel.undoChanges()
                     isViewMode = true
                 } else {
+                    // New Note: Exit screen
                     onBackClick()
                 }
             }
@@ -463,6 +438,7 @@ fun NoteDetailScreen(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
+                viewModel.deleteNote()
                 onBackClick()
             }
         )
@@ -474,7 +450,7 @@ fun NoteDetailScreen(
             onDismiss = { showRestoreNoteDialog = false },
             onConfirm = {
                 showRestoreNoteDialog = false
-                onUnarchiveClick(noteId!!)
+                viewModel.restoreNote()
             }
         )
     }

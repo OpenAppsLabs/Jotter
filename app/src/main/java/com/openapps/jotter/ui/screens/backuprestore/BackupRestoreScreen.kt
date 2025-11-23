@@ -32,20 +32,26 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-// Removed import: com.openapps.jotter.ui.components.Header
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupRestoreScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: BackupRestoreScreenViewModel = hiltViewModel()
 ) {
+    // Collect UI state
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     Scaffold(
-        // ✨ REFACTORED: Local CenterAlignedTopAppBar definition
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -56,13 +62,12 @@ fun BackupRestoreScreen(
                     )
                 },
                 navigationIcon = {
-                    // Circular Back Button Logic
                     Surface(
                         onClick = onBackClick,
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         modifier = Modifier
-                            .padding(start = 12.dp) // Consistent with previous Header padding
+                            .padding(start = 12.dp)
                             .size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -75,9 +80,12 @@ fun BackupRestoreScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    scrolledContainerColor = Color.Unspecified,
+                    navigationIconContentColor = Color.Unspecified,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = Color.Unspecified
                 )
             )
         }
@@ -88,7 +96,7 @@ fun BackupRestoreScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // --- Info Box ---
+            // Info box
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -116,30 +124,49 @@ fun BackupRestoreScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- Grouped Actions ---
             SettingsGroup(title = "Data Operations") {
-                // Export/Backup (Top Item)
                 BackupRestoreItem(
                     icon = Icons.Default.Upload,
                     title = "Export Notes",
                     subtitle = "Save all notes and tags to a local file (.jotter)",
-                    onClick = { /* TODO: Trigger File Export */ }
+                    onClick = { viewModel.exportNotes() }
                 )
                 TinyGap()
-
-                // Import/Restore (Bottom Item)
                 BackupRestoreItem(
                     icon = Icons.Default.Download,
                     title = "Import Notes",
                     subtitle = "Restore data from a previously exported (.jotter) file",
-                    onClick = { /* TODO: Trigger File Picker/Import */ }
+                    onClick = { viewModel.importNotes() }
                 )
             }
+
+            // Optional: show status messages at bottom
+            if (uiState.isExportInProgress || uiState.isImportInProgress) {
+                Text(
+                    text = "Operation in progress…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+            uiState.errorMessage?.let { error ->
+                Text(
+                    text = "Error: $error",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+
         }
     }
 }
-
-// --- Helper Composables (Used for BackupRestoreItem styling) ---
 
 @Composable
 fun TinyGap() {
@@ -150,7 +177,6 @@ fun TinyGap() {
             .background(MaterialTheme.colorScheme.background)
     ) {}
 }
-
 
 @Composable
 fun SettingsGroup(
@@ -175,7 +201,6 @@ fun SettingsGroup(
         }
     }
 }
-
 
 @Composable
 fun BackupRestoreItem(

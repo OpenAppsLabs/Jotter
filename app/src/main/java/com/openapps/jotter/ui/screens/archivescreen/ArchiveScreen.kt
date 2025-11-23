@@ -26,41 +26,32 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.openapps.jotter.data.sampleNotes
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.NoteCard
 import com.openapps.jotter.ui.components.RestoreAllDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArchiveScreen(
     onBackClick: () -> Unit,
-    onNoteClick: (Int) -> Unit = {}
+    onNoteClick: (Int) -> Unit = {},
+    viewModel: ArchiveScreenViewModel = hiltViewModel()
 ) {
-    var showRestoreAllDialog by remember { mutableStateOf(false) }
-
-    val archivedNotes = remember {
-        sampleNotes.filter { it.isArchived && !it.isTrashed }
-    }
-
-    val onRestoreAllClick: () -> Unit = {
-        showRestoreAllDialog = true
-    }
-    val canRestoreAll = archivedNotes.isNotEmpty()
-    val noteCount = archivedNotes.size
-
+    val uiState by viewModel.uiState.collectAsState()
+    val archivedNotes = uiState.archivedNotes
+    val showDialog = uiState.showRestoreAllDialog
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
@@ -74,7 +65,6 @@ fun ArchiveScreen(
                     )
                 },
                 navigationIcon = {
-                    // Back Arrow (Standard Circular Surface)
                     Surface(
                         onClick = onBackClick,
                         shape = CircleShape,
@@ -92,13 +82,12 @@ fun ArchiveScreen(
                     }
                 },
                 actions = {
-                    // Restore All Button
-                    if (canRestoreAll) {
+                    if (archivedNotes.isNotEmpty()) {
                         Surface(
-                            onClick = onRestoreAllClick,
+                            onClick = { viewModel.onRestoreAllClicked() },
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
-                            enabled = canRestoreAll,
+                            enabled = true,
                             modifier = Modifier.padding(end = 12.dp).size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -111,7 +100,6 @@ fun ArchiveScreen(
                             }
                         }
                     }
-                    // ✨ FIX: Removed the extra Spacer(8.dp) here to fix symmetry
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -144,11 +132,9 @@ fun ArchiveScreen(
                     verticalItemSpacing = 12.dp
                 ) {
                     items(archivedNotes, key = { it.id }) { note ->
-
                         val dateStr = remember(note.updatedTime) {
                             dateFormatter.format(Date(note.updatedTime))
                         }
-
                         NoteCard(
                             title = note.title,
                             content = note.content,
@@ -157,21 +143,18 @@ fun ArchiveScreen(
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
                             isGridView = true,
-                            onClick = { onNoteClick(note.id) }
+                            onClick = { viewModel.onNoteClicked(note.id); onNoteClick(note.id) }
                         )
                     }
                 }
             }
         }
 
-        if (showRestoreAllDialog) {
+        if (showDialog) {
             RestoreAllDialog(
-                noteCount = noteCount,
-                onDismiss = { showRestoreAllDialog = false },
-                onConfirm = {
-                    // TODO: Implement actual bulk restore logic here
-                    showRestoreAllDialog = false
-                }
+                noteCount = archivedNotes.size,
+                onDismiss = { viewModel.dismissRestoreAllDialog() },
+                onConfirm = { viewModel.confirmRestoreAll() }
             )
         }
     }
