@@ -30,7 +30,7 @@ class HomeScreenViewModel @Inject constructor(
         _categoryFlow // Last selected chip state
     ) { notes, prefs, selectedCategory ->
 
-        // --- Calculation of ALL Available Categories (NEW) ---
+        // --- Calculation of ALL Available Categories (Existing) ---
         // Get the list of all unique categories from ALL notes (excluding empty strings)
         val allAvailableCategories = notes
             .map { it.category }
@@ -39,7 +39,6 @@ class HomeScreenViewModel @Inject constructor(
             .sorted()
 
         // --- Validation Logic (Existing) ---
-        // Ensures the chip selection resets to "All" if the selected category no longer exists
         val validatedCategory = if (selectedCategory != "All" && !allAvailableCategories.contains(selectedCategory)) {
             "All"
         } else {
@@ -64,7 +63,8 @@ class HomeScreenViewModel @Inject constructor(
             allNotes = filteredNotes, // Filtered list goes to the grid
             selectedCategory = validatedCategory, // Validated state
             isGridView = prefs.isGridView,
-            allAvailableCategories = allAvailableCategories // <--- EXPOSED: Full list goes to the CategoryBar
+            allAvailableCategories = allAvailableCategories,
+            showAddCategoryButton = prefs.showAddCategoryButton // ✨ ADDED: Map preference from repository
         )
     }.stateIn(
         scope = viewModelScope,
@@ -76,7 +76,8 @@ class HomeScreenViewModel @Inject constructor(
         val allNotes: List<Note> = emptyList(),
         val selectedCategory: String = "All",
         val isGridView: Boolean = true,
-        val allAvailableCategories: List<String> = emptyList() // <--- NEW PROPERTY
+        val allAvailableCategories: List<String> = emptyList(),
+        val showAddCategoryButton: Boolean = true // ✨ ADDED: New property for UI control
     )
 
     // 2. Actions

@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -70,6 +71,7 @@ import com.openapps.jotter.ui.components.DiscardChangesDialog
 import com.openapps.jotter.ui.components.EditViewButton
 import com.openapps.jotter.ui.components.PinLockBar
 import com.openapps.jotter.ui.components.RestoreNoteDialog
+import com.openapps.jotter.ui.components.NoteActionDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -80,10 +82,14 @@ fun NoteDetailScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onManageCategoryClick: () -> Unit = {},
+    onNavigateToArchive: () -> Unit,
+    onNavigateToTrash: () -> Unit,
+    onNavigateToHome: () -> Unit,
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
     // 1. VIEWMODEL STATE
     val uiState by viewModel.uiState.collectAsState()
+    val userPrefs by viewModel.userPreferences.collectAsState()
 
     // Dialog & Local UI State
     var showDiscardDialog by remember { mutableStateOf(false) }
@@ -91,6 +97,9 @@ fun NoteDetailScreen(
     var showCategorySheet by remember { mutableStateOf(false) }
     var showRestoreNoteDialog by remember { mutableStateOf(false) }
     var pendingDiscard by remember { mutableStateOf(false) }
+
+    // Controls visibility of the combined Archive/Trash dialog
+    var showNoteActionDialog by remember { mutableStateOf(false) }
 
     // Helper for categories (FIXED: Now observing live database data)
     val availableCategories by viewModel.availableCategories.collectAsState()
@@ -100,8 +109,13 @@ fun NoteDetailScreen(
 
     // 2. VIEW MODE LOGIC
     // We default to Edit mode if it's a new note (not persisted), otherwise View mode
-    var isViewMode by remember(uiState.isNotePersisted) {
-        mutableStateOf(uiState.isNotePersisted)
+    var isViewMode by remember(uiState.isNotePersisted, userPrefs.defaultOpenInEdit) {
+        val initialViewMode = if (uiState.isNotePersisted) {
+            !userPrefs.defaultOpenInEdit
+        } else {
+            false
+        }
+        mutableStateOf(initialViewMode)
     }
 
     // Check for modifications to enable Save button
@@ -120,8 +134,6 @@ fun NoteDetailScreen(
 
     fun handleBack() {
         if (isSaveEnabled) {
-            // Case 1: Unsaved changes exist (New OR Existing note)
-            // Trigger Discard Dialog logic
             if (isImeVisible) {
                 pendingDiscard = true
                 keyboardController?.hide()
@@ -129,12 +141,9 @@ fun NoteDetailScreen(
                 showDiscardDialog = true
             }
         } else {
-            // Case 2: No changes logic
             if (!isViewMode && uiState.isNotePersisted) {
-                // If viewing an existing note in edit mode but no changes made, just switch to view
                 isViewMode = true
             } else {
-                // Otherwise exit screen (New note with no content, or View Mode)
                 onBackClick()
             }
         }
@@ -151,7 +160,6 @@ fun NoteDetailScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    // EditViewButton is hidden if archived/trashed
                     if (uiState.isNotePersisted && !isArchivedOrTrashed) {
                         EditViewButton(
                             isEditing = !isViewMode,
@@ -185,7 +193,7 @@ fun NoteDetailScreen(
                 },
                 actions = {
                     if (isArchivedOrTrashed) {
-                        // Show Restore Button
+                        // Show Restore Button (Active for Archived/Trashed notes)
                         Surface(
                             onClick = { showRestoreNoteDialog = true },
                             shape = CircleShape,
@@ -203,18 +211,18 @@ fun NoteDetailScreen(
                             }
                         }
                     } else if (isViewMode) {
-                        // Show Delete Button
+                        // SHOW ACTIONS MENU: Use MoreVert icon
                         Surface(
-                            onClick = { showDeleteDialog = true },
+                            onClick = { showNoteActionDialog = true }, // Trigger the action dialog
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             modifier = Modifier.padding(end = 12.dp).size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Filled.Delete,
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.error,
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Actions",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -224,7 +232,7 @@ fun NoteDetailScreen(
                         Surface(
                             onClick = {
                                 viewModel.saveNote()
-                                isViewMode = true // Switch to view mode on save
+                                isViewMode = true
                                 keyboardController?.hide()
                             },
                             shape = CircleShape,
@@ -291,7 +299,6 @@ fun NoteDetailScreen(
             // --- METADATA ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                // REMOVED: Arrangement.SpaceBetween
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 1. Category Chip (Placeholder Logic)
@@ -299,19 +306,16 @@ fun NoteDetailScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(
-                            // Use a different color/opacity if uncategorized (blank)
                             if (uiState.category.isBlank()) {
                                 MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
                             } else {
                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                             }
                         )
-                        // Allow clicking only if NOT archived/trashed
                         .clickable { if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        // ✨ FIX: Conditional display for placeholder text
                         text = if (uiState.category.isBlank()) "UNCATEGORIZED" else uiState.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
@@ -471,7 +475,7 @@ fun NoteDetailScreen(
         )
     }
 
-    // Delete Logic
+    // Delete Logic (OLD - Only used for compatibility with the dialog)
     if (showDeleteDialog) {
         DeleteNoteDialog(
             onDismiss = { showDeleteDialog = false },
@@ -483,6 +487,23 @@ fun NoteDetailScreen(
         )
     }
 
+    // ✨ NEW ACTION DIALOG CALL
+    if (showNoteActionDialog) { // Assuming you added this state variable
+        NoteActionDialog(
+            onDismiss = { showNoteActionDialog = false },
+            onArchiveConfirm = {
+                showNoteActionDialog = false
+                viewModel.archiveNote()
+                onBackClick() // FIX 1: Go back to the previous list (Home/Archive)
+            },
+            onDeleteConfirm = {
+                showNoteActionDialog = false
+                viewModel.deleteNote()
+                onBackClick() // FIX 2: Go back to the previous list (Home/Trash)
+            }
+        )
+    }
+
     // Restore Logic
     if (showRestoreNoteDialog) {
         RestoreNoteDialog(
@@ -490,6 +511,7 @@ fun NoteDetailScreen(
             onConfirm = {
                 showRestoreNoteDialog = false
                 viewModel.restoreNote()
+                onBackClick() // ✨ FIX 3: Go back to the previous list (Archive/Trash)
             }
         )
     }

@@ -28,11 +28,9 @@ fun AppNavHost(
         composable(AppRoutes.HOME) {
             HomeScreen(
                 onNoteClick = { noteId ->
-                    // Navigate using the consolidated detail route
                     navController.navigate("${AppRoutes.NOTE_DETAIL}/$noteId")
                 },
                 onAddNoteClick = {
-                    // Navigate for new note, using the -1 placeholder
                     navController.navigate("${AppRoutes.NOTE_DETAIL}/-1")
                 },
                 onAddCategoryClick = { navController.navigate(AppRoutes.ADD_CATEGORY) },
@@ -51,14 +49,16 @@ fun AppNavHost(
                 onArchiveClick = { navController.navigate(AppRoutes.ARCHIVE) },
                 onTrashClick = { navController.navigate(AppRoutes.TRASH) },
                 onBackupRestoreClick = { navController.navigate(AppRoutes.BACKUP_RESTORE) }
+                // Note: onLaunchBiometricPrompt needs to be added here from MainActivity
+                // when implementing app lock.
             )
         }
 
-        // 💡 FIX: ArchiveScreen must pass onNoteClick to navigate to the detail screen
         composable(AppRoutes.ARCHIVE) {
             ArchiveScreen(
                 onBackClick = { navController.popBackStack() },
                 onNoteClick = { noteId -> navController.navigate("${AppRoutes.NOTE_DETAIL}/$noteId") }
+                // Note: onRestoreComplete callback needs to be added here.
             )
         }
 
@@ -73,23 +73,26 @@ fun AppNavHost(
             BackupRestoreScreen(onBackClick = { navController.popBackStack() })
         }
 
-        // 💡 Consolidated Note Detail Screen: Handles viewing (ID > -1) and New Note (ID = -1)
+        // 💡 Consolidated Note Detail Screen:
         composable(
             route = AppRoutes.NOTE_DETAIL_ROUTE_WITH_ARGS,
             arguments = listOf(
                 navArgument(AppRoutes.NOTE_ID_KEY) {
                     type = NavType.IntType
-                    defaultValue = -1 // Indicates a new note
+                    defaultValue = -1
                 }
             )
         ) {
-            // 💡 Use NoteDetailScreen
-            // ViewModel handles data loading using SavedStateHandle
+            // ✨ FIX: Provide all the newly required navigation callbacks
             NoteDetailScreen(
                 onBackClick = { navController.popBackStack() },
                 onManageCategoryClick = {
                     navController.navigate(AppRoutes.ADD_CATEGORY)
-                }
+                },
+                // Mappings for actions that change a note's state and require navigation:
+                onNavigateToArchive = { navController.navigate(AppRoutes.ARCHIVE) },
+                onNavigateToTrash = { navController.navigate(AppRoutes.TRASH) },
+                onNavigateToHome = { navController.navigate(AppRoutes.HOME) }
             )
         }
     }

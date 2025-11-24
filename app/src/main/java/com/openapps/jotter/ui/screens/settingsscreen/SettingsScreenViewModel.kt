@@ -28,7 +28,9 @@ class SettingsScreenViewModel @Inject constructor(
                 defaultOpenInEdit = prefs.defaultOpenInEdit,
                 isHapticEnabled = prefs.isHapticEnabled,
                 isBiometricEnabled = prefs.isBiometricEnabled,
-                isSecureMode = prefs.isSecureMode
+                isSecureMode = prefs.isSecureMode,
+                // ✨ ADDED: Map the new preference field
+                showAddCategoryButton = prefs.showAddCategoryButton
             )
         }
         .stateIn(
@@ -46,10 +48,17 @@ class SettingsScreenViewModel @Inject constructor(
         val defaultOpenInEdit: Boolean = false,
         val isHapticEnabled: Boolean = true,
         val isBiometricEnabled: Boolean = false,
-        val isSecureMode: Boolean = false
+        val isSecureMode: Boolean = false,
+        // ✨ ADDED: New UiState field
+        val showAddCategoryButton: Boolean = true
     )
 
     // 2. User Actions -> Call Repository
+
+    // ✨ NEW ACTION: Setter for the switch
+    fun updateShowAddCategoryButton(show: Boolean) {
+        viewModelScope.launch { repository.setShowAddCategoryButton(show) }
+    }
 
     fun updateDarkMode(isEnabled: Boolean) {
         viewModelScope.launch { repository.setDarkMode(isEnabled) }

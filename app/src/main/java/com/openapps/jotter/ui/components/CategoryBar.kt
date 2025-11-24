@@ -34,6 +34,7 @@ fun CategoryBar(
     selectedCategory: String,
     onCategorySelect: (String) -> Unit,
     onAddCategoryClick: () -> Unit,
+    showAddButton: Boolean, // ✨ NEW PARAMETER: Controls visibility
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
@@ -105,30 +106,33 @@ fun CategoryBar(
             )
         }
 
-        item {
-            FilterChip(
-                selected = false,
-                onClick = onAddCategoryClick,
-                label = { Text("Add") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+        // ✨ FIX: Conditionally render the Add chip based on the new parameter
+        if (showAddButton) {
+            item {
+                FilterChip(
+                    selected = false,
+                    onClick = onAddCategoryClick,
+                    label = { Text("Add") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        iconColor = MaterialTheme.colorScheme.primary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                        enabled = true,
+                        selected = false
                     )
-                },
-                shape = RoundedCornerShape(8.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    iconColor = MaterialTheme.colorScheme.primary
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    borderColor = MaterialTheme.colorScheme.outlineVariant,
-                    enabled = true,
-                    selected = false
                 )
-            )
+            }
         }
     }
 }

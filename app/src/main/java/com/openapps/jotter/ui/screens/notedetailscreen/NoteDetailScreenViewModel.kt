@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.openapps.jotter.data.model.Note
 import com.openapps.jotter.data.repository.CategoryRepository
 import com.openapps.jotter.data.repository.NotesRepository
+import com.openapps.jotter.data.repository.UserPreferences // Import UserPreferences model
+import com.openapps.jotter.data.repository.UserPreferencesRepository // Import User Prefs Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,10 +24,15 @@ import javax.inject.Inject
 class NoteDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val notesRepository: NotesRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val userPreferencesRepository: UserPreferencesRepository // ✨ ADDED: Inject User Prefs Repository
 ) : ViewModel() {
 
     private val noteId: Int? = savedStateHandle.get<Int>("noteId")
+
+    // NEW: Expose the user preferences flow for the Composable to read the setting
+    val userPreferences: StateFlow<UserPreferences> = userPreferencesRepository.userPreferencesFlow
+        .stateIn(viewModelScope, SharingStarted.Lazily, UserPreferences())
 
     data class UiState(
         val id: Int? = null,
@@ -59,18 +66,16 @@ class NoteDetailViewModel @Inject constructor(
         } else {
             _uiState.update { it.copy(isNotePersisted = false, isLoading = false) }
         }
-        observeCategoryCleanup() // ✨ Call the cleanup observer on initialization
+        observeCategoryCleanup()
     }
 
     // ✨ NEW FUNCTION: Observes available categories and resets note's category if it was deleted
     private fun observeCategoryCleanup() {
         viewModelScope.launch {
             availableCategories
-                .collectLatest { categories -> // collectLatest handles flow lifecycle efficiently
+                .collectLatest { categories ->
                     val currentCategory = uiState.value.category
 
-                    // If the note has a category AND that category is no longer in the master list,
-                    // reset the note's category to empty.
                     if (currentCategory.isNotBlank() && !categories.contains(currentCategory)) {
                         _uiState.update {
                             it.copy(category = "")
@@ -156,7 +161,7 @@ class NoteDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val currentState = _uiState.value
 
-            // Final VM logic provided:
+            // 1. CHECK & INSERT: Ensure the category exists in the Category table
             if (currentState.category.isNotBlank()) {
                 categoryRepository.insertCategory(currentState.category)
             }
@@ -207,6 +212,23 @@ class NoteDetailViewModel @Inject constructor(
             } else {
                 notesRepository.trashNote(noteToDelete)
             }
+        }
+    }
+
+    // In NoteDetailViewModel.kt (near deleteNote() function)
+
+    fun archiveNote() {
+        viewModelScope.launch {
+            val note = uiState.value
+
+            // Construct a Note object with the necessary ID to archive it in the repository.
+            val noteToArchive = Note(id = note.id ?: 0)
+
+            // Call the repository function
+            notesRepository.archiveNote(noteToArchive)
+
+            // Note: The UI will navigate away after the confirmation,
+            // but the repository call correctly updates the DB state.
         }
     }
 

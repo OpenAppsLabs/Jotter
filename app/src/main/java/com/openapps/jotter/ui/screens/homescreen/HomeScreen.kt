@@ -105,6 +105,7 @@ fun HomeScreen(
                 selectedCategory    = uiState.selectedCategory,
                 onCategorySelect    = { viewModel.selectCategory(it) },
                 onAddCategoryClick  = onAddCategoryClick,
+                showAddButton       = uiState.showAddCategoryButton,
                 modifier            = Modifier.padding(bottom = 8.dp)
             )
 
