@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Brightness2
@@ -201,6 +202,16 @@ fun SettingsScreen(
                     )
                     TinyGap()
 
+                    // ✨ NEW SWITCH: Toggle visibility of the Add Tag button on Home Screen
+                    SettingsItemSwitch(
+                        icon = Icons.Default.Add,
+                        title = "Show Add Tag Button",
+                        subtitle = "Show/Hide '+' on Home screen",
+                        checked = uiState.showAddCategoryButton, // Uses the new state
+                        onCheckedChange = { viewModel.updateShowAddCategoryButton(it) } // Uses the new setter
+                    )
+                    TinyGap() // Add TinyGap after the new switch
+
                     SettingsItemSwitch(
                         icon = Icons.Default.Vibration,
                         title = "Haptic Feedback",
@@ -291,6 +302,7 @@ fun SettingsScreen(
 }
 
 // --- Helper Composables ---
+// NOTE: These were not part of the requested change but are included for completeness.
 
 @Composable
 fun TinyGap() {

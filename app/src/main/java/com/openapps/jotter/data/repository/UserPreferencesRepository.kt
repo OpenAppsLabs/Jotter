@@ -20,7 +20,8 @@ data class UserPreferences(
     val defaultOpenInEdit: Boolean = false,
     val isHapticEnabled: Boolean = true,
     val isBiometricEnabled: Boolean = false,
-    val isSecureMode: Boolean = false
+    val isSecureMode: Boolean = false,
+    val showAddCategoryButton: Boolean = true
 )
 
 // 2. The Repository: Handles saving/loading
@@ -38,6 +39,7 @@ class UserPreferencesRepository @Inject constructor(
         val IS_HAPTIC = booleanPreferencesKey("is_haptic")
         val IS_BIOMETRIC = booleanPreferencesKey("is_biometric")
         val IS_SECURE_MODE = booleanPreferencesKey("is_secure_mode")
+        val SHOW_ADD_CATEGORY_BUTTON = booleanPreferencesKey("show_add_category_button") // ✨ ADD THIS LINE
     }
 
     // Read Data (Exposed as a Flow)
@@ -58,7 +60,8 @@ class UserPreferencesRepository @Inject constructor(
                 defaultOpenInEdit = preferences[Keys.DEFAULT_OPEN_EDIT] ?: false,
                 isHapticEnabled = preferences[Keys.IS_HAPTIC] ?: true,
                 isBiometricEnabled = preferences[Keys.IS_BIOMETRIC] ?: false,
-                isSecureMode = preferences[Keys.IS_SECURE_MODE] ?: false
+                isSecureMode = preferences[Keys.IS_SECURE_MODE] ?: false,
+                showAddCategoryButton = preferences[Keys.SHOW_ADD_CATEGORY_BUTTON] ?: true
             )
         }
 
@@ -99,5 +102,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun clearAllData() {
         dataStore.edit { it.clear() }
+    }
+
+    suspend fun setShowAddCategoryButton(show: Boolean) { // ✨ ADD THIS FUNCTION
+        dataStore.edit { it[Keys.SHOW_ADD_CATEGORY_BUTTON] = show }
     }
 }

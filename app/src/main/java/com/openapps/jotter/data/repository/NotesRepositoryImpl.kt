@@ -35,39 +35,49 @@ class NotesRepositoryImpl @Inject constructor(
 
     // Helper functions for status changes
     override suspend fun archiveNote(note: Note) {
-        // Update flags: set archived=true, set updated time
-        noteDao.update(note.copy(
-            isArchived = true,
-            isTrashed = false,
-            updatedTime = System.currentTimeMillis()
-        ))
+        // 1. Fetch the full, current note from the database
+        val existingNote = noteDao.getNoteById(note.id)
+        if (existingNote != null) {
+            // 2. Apply only the status change
+            noteDao.update(existingNote.copy(
+                isArchived = true,
+                isTrashed = false,
+                updatedTime = System.currentTimeMillis()
+            ))
+        }
     }
 
     override suspend fun unarchiveNote(note: Note) {
-        // Update flags: set archived=false, set updated time
-        noteDao.update(note.copy(
-            isArchived = false,
-            isTrashed = false,
-            updatedTime = System.currentTimeMillis()
-        ))
+        val existingNote = noteDao.getNoteById(note.id)
+        if (existingNote != null) {
+            noteDao.update(existingNote.copy(
+                isArchived = false,
+                isTrashed = false,
+                updatedTime = System.currentTimeMillis()
+            ))
+        }
     }
 
     override suspend fun trashNote(note: Note) {
-        // Update flags: set trashed=true, set updated time
-        noteDao.update(note.copy(
-            isTrashed = true,
-            isArchived = false, // Must ensure it's not archived when in trash
-            updatedTime = System.currentTimeMillis()
-        ))
+        val existingNote = noteDao.getNoteById(note.id)
+        if (existingNote != null) {
+            noteDao.update(existingNote.copy(
+                isTrashed = true,
+                isArchived = false,
+                updatedTime = System.currentTimeMillis()
+            ))
+        }
     }
 
     override suspend fun restoreNote(note: Note) {
-        // Update flags: set both to false (restores to active notes)
-        noteDao.update(note.copy(
-            isTrashed = false,
-            isArchived = false,
-            updatedTime = System.currentTimeMillis()
-        ))
+        val existingNote = noteDao.getNoteById(note.id)
+        if (existingNote != null) {
+            noteDao.update(existingNote.copy(
+                isTrashed = false,
+                isArchived = false,
+                updatedTime = System.currentTimeMillis()
+            ))
+        }
     }
 
     // --- Delete Operations ---

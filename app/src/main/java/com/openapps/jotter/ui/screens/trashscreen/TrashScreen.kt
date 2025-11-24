@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.EmptyTrashDialog
 import com.openapps.jotter.ui.components.NoteCard
+import com.openapps.jotter.ui.components.RestoreAllDialog // Assuming this component exists
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -53,7 +55,8 @@ fun TrashScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val trashedNotes = uiState.trashedNotes
-    val showDialog = uiState.showEmptyTrashDialog
+    val showEmptyTrashDialog = uiState.showEmptyTrashDialog // Correctly controls FAB dialog
+    val showRestoreDialog = uiState.showRestoreAllDialog // ✨ FIX 1: Extract new state
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
@@ -80,6 +83,27 @@ fun TrashScreen(
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(24.dp)
                             )
+                        }
+                    }
+                },
+                actions = {
+                    if (trashedNotes.isNotEmpty()) {
+                        // Restore All Button
+                        Surface(
+                            onClick = { viewModel.onRestoreAllClicked() },
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            enabled = true,
+                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                        ) {
+                            ComposeBox(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Restore,
+                                    contentDescription = "Restore All",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
                 },
@@ -119,7 +143,6 @@ fun TrashScreen(
                 }
             } else {
                 LazyVerticalStaggeredGrid(
-                    // ✨ FIX: Apply the global view state from the ViewModel
                     columns = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
@@ -138,7 +161,6 @@ fun TrashScreen(
                             category = note.category,
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
-                            // ✨ FIX: Use the global view state for the card layout
                             isGridView = uiState.isGridView,
                             onClick = {
                                 viewModel.onNoteClicked(note.id)
@@ -150,10 +172,20 @@ fun TrashScreen(
             }
         }
 
-        if (showDialog) {
+        // Display Empty Trash Dialog
+        if (showEmptyTrashDialog) {
             EmptyTrashDialog(
                 onDismiss = { viewModel.dismissEmptyTrashDialog() },
                 onConfirm = { viewModel.confirmEmptyTrash() }
+            )
+        }
+
+        // ✨ NEW DIALOG: Display Restore All Dialog
+        if (showRestoreDialog) {
+            RestoreAllDialog(
+                noteCount = trashedNotes.size,
+                onDismiss = { viewModel.dismissRestoreAllDialog() },
+                onConfirm = { viewModel.confirmRestoreAll() }
             )
         }
     }
