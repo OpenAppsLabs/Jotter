@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,7 +55,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -69,9 +67,9 @@ import com.openapps.jotter.ui.components.CategorySheet
 import com.openapps.jotter.ui.components.DeleteNoteDialog
 import com.openapps.jotter.ui.components.DiscardChangesDialog
 import com.openapps.jotter.ui.components.EditViewButton
+import com.openapps.jotter.ui.components.NoteActionDialog
 import com.openapps.jotter.ui.components.PinLockBar
 import com.openapps.jotter.ui.components.RestoreNoteDialog
-import com.openapps.jotter.ui.components.NoteActionDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -122,7 +120,7 @@ fun NoteDetailScreen(
     val isSaveEnabled = !isViewMode && (uiState.title.isNotBlank() || uiState.content.isNotBlank())
 
     val dateString = remember(uiState.lastEdited) {
-        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(uiState.lastEdited))
+        SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(uiState.createdTime))
     }
 
     LaunchedEffect(isImeVisible) {
@@ -367,11 +365,13 @@ fun NoteDetailScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                     }
 
-                    Text(
-                        text = dateString,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (uiState.isNotePersisted) {
+                        Text(
+                            text = "Created at $dateString",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
 

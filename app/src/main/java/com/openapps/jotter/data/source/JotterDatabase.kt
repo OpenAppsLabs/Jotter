@@ -10,7 +10,7 @@ import com.openapps.jotter.data.model.Note
  */
 @Database(
     entities = [Note::class, Category::class], // ✨ UPDATED: Added Category Entity
-    version = 2, // ✨ UPDATED: Version must be incremented
+    version = 3, // ✨ UPDATED: Version must be incremented
     exportSchema = false
 )
 abstract class JotterDatabase : RoomDatabase() {

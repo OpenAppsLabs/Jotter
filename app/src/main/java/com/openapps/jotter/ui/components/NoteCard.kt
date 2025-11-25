@@ -134,7 +134,9 @@ fun NoteCard(
                 if (isLocked && isGridView) {
                     // ✨ GRID VIEW LOCKED: Centered Large Lock Icon
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 20.dp), // ✨ FIX: Push icon up to balance the Title
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(

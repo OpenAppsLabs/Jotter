@@ -8,8 +8,10 @@ import com.openapps.jotter.data.repository.NotesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,7 +28,8 @@ data class BackupRestoreUiState(
     val isImportInProgress: Boolean = false,
     val lastExportSuccess: Boolean? = null,
     val lastImportSuccess: Boolean? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val hasDataToExport: Boolean = false // ✨ NEW FIELD: Tracks if db has data
 )
 
 @HiltViewModel
@@ -34,31 +37,60 @@ class BackupRestoreScreenViewModel @Inject constructor(
     private val repository: NotesRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(BackupRestoreUiState())
-    val uiState: StateFlow<BackupRestoreUiState> = _uiState.asStateFlow()
+    // Internal state for loading/error flags
+    private val _internalUiState = MutableStateFlow(BackupRestoreUiState())
+
+    // ✨ Combine internal state with database flows to know if data exists in real-time
+    val uiState: StateFlow<BackupRestoreUiState> = combine(
+        _internalUiState,
+        repository.getAllNotes(),      // Active notes
+        repository.getArchivedNotes(), // Archived notes
+        repository.getCategories()     // Categories
+    ) { currentUi, notes, archived, categories ->
+
+        // Check if there is ANY data to export
+        val hasData = notes.isNotEmpty() || archived.isNotEmpty() || categories.isNotEmpty()
+
+        currentUi.copy(hasDataToExport = hasData)
+
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = BackupRestoreUiState()
+    )
 
     private val gson = Gson()
 
     /**
      * Generates the Backup JSON string.
-     * The UI calls this, and when the JSON is ready, the [onReady] callback is fired
-     * so the UI can write it to the file system (using ContentResolver).
+     * @param onReady Callback with the JSON string when data is ready to save.
+     * @param onEmpty Callback fired if there is no data to export.
      */
-    fun exportNotes(onReady: (String) -> Unit) {
+    fun exportNotes(onReady: (String) -> Unit, onEmpty: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             // 1. Start Loading
-            _uiState.update { it.copy(isExportInProgress = true, errorMessage = null, lastExportSuccess = null) }
+            _internalUiState.update { it.copy(isExportInProgress = true, errorMessage = null, lastExportSuccess = null) }
 
             try {
-                // 2. Fetch Data
+                // 2. Fetch Data Snapshot
                 val (notes, categories) = repository.getBackupData()
+
+                // ✨ FIX: Check if data exists before generating JSON
+                if (notes.isEmpty() && categories.isEmpty()) {
+                    _internalUiState.update { it.copy(isExportInProgress = false) }
+                    withContext(Dispatchers.Main) {
+                        onEmpty() // Notify UI to show "No Data" dialog
+                    }
+                    return@launch
+                }
+
                 val backupData = BackupData(notes, categories)
 
                 // 3. Convert to JSON
                 val jsonString = gson.toJson(backupData)
 
                 // 4. Update State & Callback
-                _uiState.update { it.copy(isExportInProgress = false, lastExportSuccess = true) }
+                _internalUiState.update { it.copy(isExportInProgress = false, lastExportSuccess = true) }
 
                 withContext(Dispatchers.Main) {
                     onReady(jsonString)
@@ -66,7 +98,7 @@ class BackupRestoreScreenViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.update {
+                _internalUiState.update {
                     it.copy(isExportInProgress = false, lastExportSuccess = false, errorMessage = e.localizedMessage)
                 }
             }
@@ -79,7 +111,7 @@ class BackupRestoreScreenViewModel @Inject constructor(
     fun importNotes(inputStream: InputStream) {
         viewModelScope.launch(Dispatchers.IO) {
             // 1. Start Loading
-            _uiState.update { it.copy(isImportInProgress = true, errorMessage = null, lastImportSuccess = null) }
+            _internalUiState.update { it.copy(isImportInProgress = true, errorMessage = null, lastImportSuccess = null) }
 
             try {
                 // 2. Read & Parse
@@ -91,11 +123,11 @@ class BackupRestoreScreenViewModel @Inject constructor(
                 repository.restoreBackupData(backupData.notes, backupData.categories)
 
                 // 4. Success
-                _uiState.update { it.copy(isImportInProgress = false, lastImportSuccess = true) }
+                _internalUiState.update { it.copy(isImportInProgress = false, lastImportSuccess = true) }
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.update {
+                _internalUiState.update {
                     it.copy(isImportInProgress = false, lastImportSuccess = false, errorMessage = "Invalid Backup File")
                 }
             }
@@ -103,6 +135,6 @@ class BackupRestoreScreenViewModel @Inject constructor(
     }
 
     fun clearError() {
-        _uiState.update { it.copy(errorMessage = null, lastExportSuccess = null, lastImportSuccess = null) }
+        _internalUiState.update { it.copy(errorMessage = null, lastExportSuccess = null, lastImportSuccess = null) }
     }
 }

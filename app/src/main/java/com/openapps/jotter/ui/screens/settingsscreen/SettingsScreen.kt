@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.outlined.Dashboard // ✨ ADDED IMPORT
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.ClearAllDataDialog
 import com.openapps.jotter.ui.components.EditViewButton
+import com.openapps.jotter.ui.components.GridListButton // ✨ ADDED IMPORT
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,14 +77,13 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // ✨ FIX: Check loading state first
-    // This prevents the UI from showing default "false" values while DataStore is reading
     if (uiState.isLoading) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
         )
-        return // Stop here, don't render the Scaffold yet
+        return
     }
 
     // Dialog visibility remains local UI state
@@ -167,10 +168,23 @@ fun SettingsScreen(
                     TinyGap()
                     SettingsItemEditView(
                         icon = Icons.Default.Edit,
-                        title = "Default View",
-                        subtitle = "Default open mode",
+                        title = "Default Open Mode",
+                        subtitle = "View OR Edit",
                         isEditDefault = uiState.defaultOpenInEdit,
                         onToggleEditDefault = { viewModel.updateDefaultOpenInEdit(it) }
+                    )
+
+                    TinyGap()
+
+                    // ✨ NEW: Default View Mode (Grid vs List)
+                    SettingsItemGridView(
+                        icon = Icons.Outlined.Dashboard,
+                        title = "Default View Mode",
+                        subtitle = if (uiState.isGridView) "Grid View" else "List View",
+                        isGridView = uiState.isGridView,
+                        onToggle = {
+                            viewModel.updateGridView(!uiState.isGridView)
+                        }
                     )
                 }
             }
@@ -202,15 +216,15 @@ fun SettingsScreen(
                     )
                     TinyGap()
 
-                    // ✨ NEW SWITCH: Toggle visibility of the Add Tag button on Home Screen
+                    // Toggle visibility of the Add Tag button on Home Screen
                     SettingsItemSwitch(
                         icon = Icons.Default.Add,
                         title = "Show Add Tag Button",
                         subtitle = "Show/Hide '+' on Home screen",
-                        checked = uiState.showAddCategoryButton, // Uses the new state
-                        onCheckedChange = { viewModel.updateShowAddCategoryButton(it) } // Uses the new setter
+                        checked = uiState.showAddCategoryButton,
+                        onCheckedChange = { viewModel.updateShowAddCategoryButton(it) }
                     )
-                    TinyGap() // Add TinyGap after the new switch
+                    TinyGap()
 
                     SettingsItemSwitch(
                         icon = Icons.Default.Vibration,
@@ -302,7 +316,6 @@ fun SettingsScreen(
 }
 
 // --- Helper Composables ---
-// NOTE: These were not part of the requested change but are included for completeness.
 
 @Composable
 fun TinyGap() {
@@ -432,6 +445,55 @@ fun SettingsItemEditView(
         EditViewButton(
             isEditing = isEditDefault,
             onToggle = { onToggleEditDefault(!isEditDefault) }
+        )
+    }
+}
+
+// ✨ NEW HELPER: Settings Item for Grid/List Toggle
+@Composable
+fun SettingsItemGridView(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    isGridView: Boolean,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(24.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Uses the existing GridListButton component
+        GridListButton(
+            isGridView = isGridView,
+            onToggle = onToggle
         )
     }
 }

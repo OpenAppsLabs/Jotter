@@ -40,8 +40,9 @@ fun EditViewButton(
 
     val iconButtonSize = 48.dp
 
+    // Logic Flipped: If isEditing (Left side), offset is 0. If View mode (Right side), offset is size.
     val offsetX by animateDpAsState(
-        targetValue = if (!isEditing) 0.dp else iconButtonSize,
+        targetValue = if (isEditing) 0.dp else iconButtonSize,
         animationSpec = spring(
             dampingRatio = 0.8f,
             stiffness = 300f
@@ -67,7 +68,7 @@ fun EditViewButton(
 
         // 2. The Buttons/Icons laid out in a Row on top of the indicator
         Row(Modifier.fillMaxSize()) {
-            // View Button Area (Left)
+            // Edit Button Area (Left) - Swapped to here
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -75,30 +76,9 @@ fun EditViewButton(
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null, // 👇 Set indication to null to explicitly remove feedback
+                        indication = null,
                         role = Role.Button,
-                        onClick = { if (isEditing) onToggle() }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Visibility,
-                    contentDescription = "View Mode",
-                    tint = if (!isEditing) activeContentColor else inactiveContentColor
-                )
-            }
-
-            // Edit Button Area (Right)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clip(CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null, // 👇 Set indication to null to explicitly remove feedback
-                        role = Role.Button,
-                        onClick = { if (!isEditing) onToggle() }
+                        onClick = { if (!isEditing) onToggle() } // Click to switch to Edit
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -106,6 +86,27 @@ fun EditViewButton(
                     imageVector = Icons.Default.Create,
                     contentDescription = "Edit Mode",
                     tint = if (isEditing) activeContentColor else inactiveContentColor
+                )
+            }
+
+            // View Button Area (Right) - Swapped to here
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        role = Role.Button,
+                        onClick = { if (isEditing) onToggle() } // Click to switch to View
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = "View Mode",
+                    tint = if (!isEditing) activeContentColor else inactiveContentColor
                 )
             }
         }

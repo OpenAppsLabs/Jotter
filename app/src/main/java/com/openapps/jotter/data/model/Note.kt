@@ -13,6 +13,7 @@ data class Note(
     val title: String = "",
     val content: String = "",
     val category: String = "",
+    val createdTime: Long = System.currentTimeMillis(),
     val updatedTime: Long = System.currentTimeMillis(),
     val isPinned: Boolean = false,
     val isLocked: Boolean = false,

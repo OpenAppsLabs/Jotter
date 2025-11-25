@@ -35,4 +35,6 @@ interface NotesRepository {
     // --- Backup & Restore ---
     suspend fun getBackupData(): Pair<List<Note>, List<Category>>
     suspend fun restoreBackupData(notes: List<Note>, categories: List<Category>)
+
+    suspend fun clearAllDatabaseData()
 }
