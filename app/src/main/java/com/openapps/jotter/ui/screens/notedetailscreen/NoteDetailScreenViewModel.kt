@@ -43,6 +43,7 @@ class NoteDetailViewModel @Inject constructor(
         val isLocked: Boolean = false,
         val isArchived: Boolean = false,
         val isTrashed: Boolean = false,
+        val createdTime: Long = System.currentTimeMillis(),
         val lastEdited: Long = System.currentTimeMillis(),
         val isNotePersisted: Boolean = false,
         val isLoading: Boolean = true
@@ -101,6 +102,7 @@ class NoteDetailViewModel @Inject constructor(
                         isLocked = note.isLocked,
                         isArchived = note.isArchived,
                         isTrashed = note.isTrashed,
+                        createdTime = note.createdTime,
                         lastEdited = note.updatedTime,
                         isNotePersisted = true,
                         isLoading = false
@@ -126,6 +128,7 @@ class NoteDetailViewModel @Inject constructor(
                     isLocked = currentState.isLocked,
                     isArchived = currentState.isArchived,
                     isTrashed = currentState.isTrashed,
+                    createdTime = currentState.createdTime,
                     updatedTime = currentState.lastEdited
                 )
                 notesRepository.updateNote(updatedNote)

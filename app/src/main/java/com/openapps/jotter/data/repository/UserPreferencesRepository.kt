@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 // 1. The Model: Holds our settings data
 data class UserPreferences(
-    val isGridView: Boolean = true, // <--- ADDED: Persist Grid/List state
+    val isGridView: Boolean = false, // <--- ADDED: Persist Grid/List state
     val isDarkMode: Boolean = false,
     val isTrueBlackEnabled: Boolean = false,
     val isDynamicColor: Boolean = true,
@@ -53,7 +53,7 @@ class UserPreferencesRepository @Inject constructor(
         }
         .map { preferences ->
             UserPreferences(
-                isGridView = preferences[Keys.IS_GRID_VIEW] ?: true, // <--- Map Key
+                isGridView = preferences[Keys.IS_GRID_VIEW] ?: false,
                 isDarkMode = preferences[Keys.IS_DARK_MODE] ?: false,
                 isTrueBlackEnabled = preferences[Keys.IS_TRUE_BLACK] ?: false,
                 isDynamicColor = preferences[Keys.IS_DYNAMIC_COLOR] ?: true,
@@ -64,8 +64,6 @@ class UserPreferencesRepository @Inject constructor(
                 showAddCategoryButton = preferences[Keys.SHOW_ADD_CATEGORY_BUTTON] ?: true
             )
         }
-
-    // Write Data Functions
 
     // <--- ADDED Setter
     suspend fun setGridView(isGrid: Boolean) {
@@ -101,7 +99,16 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     suspend fun clearAllData() {
-        dataStore.edit { it.clear() }
+        dataStore.edit { preferences ->
+            // 1. Save the one setting we want to keep
+            val keepAddButton = preferences[Keys.SHOW_ADD_CATEGORY_BUTTON] ?: true
+
+            // 2. Wipe everything
+            preferences.clear()
+
+            // 3. Restore the saved setting
+            preferences[Keys.SHOW_ADD_CATEGORY_BUTTON] = keepAddButton
+        }
     }
 
     suspend fun setShowAddCategoryButton(show: Boolean) { // ✨ ADD THIS FUNCTION

@@ -1,6 +1,5 @@
 package com.openapps.jotter.ui.screens.backuprestore
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -36,6 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.openapps.jotter.ui.components.BackupDialogType
+import com.openapps.jotter.ui.components.BackupRestoreDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,24 +62,31 @@ fun BackupRestoreScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // Local state to control the dialog visibility and type
+    var activeDialog by remember { mutableStateOf<BackupDialogType?>(null) }
+
     // 1. EXPORT LAUNCHER: Opens "Save as" dialog
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         uri?.let { safeUri ->
-            // Trigger ViewModel to generate JSON
-            viewModel.exportNotes { jsonString ->
-                try {
-                    // Write JSON to the selected file URI
-                    context.contentResolver.openOutputStream(safeUri)?.use { output ->
-                        output.write(jsonString.toByteArray())
+            // FIX: Call ViewModel with both required parameters
+            viewModel.exportNotes(
+                onReady = { jsonString ->
+                    try {
+                        context.contentResolver.openOutputStream(safeUri)?.use { output ->
+                            output.write(jsonString.toByteArray())
+                        }
+                        activeDialog = BackupDialogType.EXPORT_SUCCESS
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        activeDialog = BackupDialogType.ERROR
                     }
-                    Toast.makeText(context, "Backup saved successfully", Toast.LENGTH_LONG).show()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(context, "Export failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                },
+                onEmpty = {
+                    activeDialog = BackupDialogType.NO_DATA_TO_EXPORT
                 }
-            }
+            )
         }
     }
 
@@ -88,19 +99,21 @@ fun BackupRestoreScreen(
                 val inputStream = context.contentResolver.openInputStream(safeUri)
                 if (inputStream != null) {
                     viewModel.importNotes(inputStream)
-                    Toast.makeText(context, "Restoring data...", Toast.LENGTH_SHORT).show()
+                    // Success dialog will be triggered by UI state observation below
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "Import failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                activeDialog = BackupDialogType.ERROR
             }
         }
     }
 
-    // Show Success Toast based on state
-    if (uiState.lastImportSuccess == true) {
-        Toast.makeText(context, "Data restored successfully!", Toast.LENGTH_SHORT).show()
-        viewModel.clearError() // Reset state
+    // Watch UI State for Import Success/Failure to trigger Dialog
+    if (uiState.lastImportSuccess == true && activeDialog == null) {
+        activeDialog = BackupDialogType.IMPORT_SUCCESS
+        viewModel.clearError() // Reset state after triggering dialog
+    }
+    if (uiState.errorMessage != null && activeDialog == null) {
+        activeDialog = BackupDialogType.ERROR
     }
 
     Scaffold(
@@ -182,8 +195,13 @@ fun BackupRestoreScreen(
                     title = "Export Notes",
                     subtitle = "Save all notes and tags to a local file",
                     onClick = {
-                        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                        exportLauncher.launch("jotter_backup_$timeStamp.json")
+                        // FIX: Check if data exists BEFORE launching the picker to avoid creating empty files
+                        if (uiState.hasDataToExport) {
+                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                            exportLauncher.launch("jotter_backup_$timeStamp.json")
+                        } else {
+                            activeDialog = BackupDialogType.NO_DATA_TO_EXPORT
+                        }
                     }
                 )
                 TinyGap()
@@ -207,22 +225,23 @@ fun BackupRestoreScreen(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
-            uiState.errorMessage?.let { error ->
-                Text(
-                    text = "Error: $error",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
         }
+    }
+
+    // Render the Dialog if active
+    activeDialog?.let { type ->
+        BackupRestoreDialog(
+            type = type,
+            onDismiss = {
+                activeDialog = null
+                viewModel.clearError()
+            },
+            errorMessage = uiState.errorMessage
+        )
     }
 }
 
-// ... (Your Helper Composables: TinyGap, SettingsGroup, BackupRestoreItem remain the same)
+// ... (Helper Composables remain the same)
 @Composable
 fun TinyGap() {
     Column(

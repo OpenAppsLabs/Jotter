@@ -5,9 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
-import dagger.hilt.android.AndroidEntryPoint  // <- import this
 import com.openapps.jotter.navigation.AppNavHost
 import com.openapps.jotter.ui.theme.JotterTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

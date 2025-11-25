@@ -108,4 +108,10 @@ class NotesRepositoryImpl @Inject constructor(
         noteDao.insertAll(notes)
         categoryDao.insertAll(categories)
     }
+
+    override suspend fun clearAllDatabaseData() {
+        // These functions were added to your DAOs during the Backup/Restore setup
+        noteDao.deleteAllNotes()
+        categoryDao.deleteAllCategories()
+    }
 }

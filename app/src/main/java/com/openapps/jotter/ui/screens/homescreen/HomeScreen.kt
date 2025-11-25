@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ViewList
-import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -65,14 +63,14 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    FilledTonalIconButton(onClick = { viewModel.toggleGridView() }) {
-                        Icon(
-                            imageVector = if (uiState.isGridView) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
-                            contentDescription = "Toggle View",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
+//                    FilledTonalIconButton(onClick = { viewModel.toggleGridView() }) {
+//                        Icon(
+//                            imageVector = if (uiState.isGridView) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
+//                            contentDescription = "Toggle View",
+//                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+//                        )
+//                    }
+//                    Spacer(modifier = Modifier.width(8.dp))
                     FilledTonalIconButton(onClick = onSettingsClick) {
                         Icon(
                             imageVector     = Icons.Outlined.Settings,

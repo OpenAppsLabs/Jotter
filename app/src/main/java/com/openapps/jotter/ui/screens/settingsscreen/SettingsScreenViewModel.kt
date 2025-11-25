@@ -2,6 +2,7 @@ package com.openapps.jotter.ui.screens.settingsscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapps.jotter.data.repository.NotesRepository
 import com.openapps.jotter.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
-    private val repository: UserPreferencesRepository
+    private val repository: UserPreferencesRepository,
+    private val notesRepository: NotesRepository
 ) : ViewModel() {
 
     // 1. Convert Repository Flow -> UI State
@@ -30,7 +32,8 @@ class SettingsScreenViewModel @Inject constructor(
                 isBiometricEnabled = prefs.isBiometricEnabled,
                 isSecureMode = prefs.isSecureMode,
                 // ✨ ADDED: Map the new preference field
-                showAddCategoryButton = prefs.showAddCategoryButton
+                showAddCategoryButton = prefs.showAddCategoryButton,
+                isGridView = prefs.isGridView
             )
         }
         .stateIn(
@@ -50,7 +53,8 @@ class SettingsScreenViewModel @Inject constructor(
         val isBiometricEnabled: Boolean = false,
         val isSecureMode: Boolean = false,
         // ✨ ADDED: New UiState field
-        val showAddCategoryButton: Boolean = true
+        val showAddCategoryButton: Boolean = true,
+        val isGridView: Boolean = false
     )
 
     // 2. User Actions -> Call Repository
@@ -88,11 +92,18 @@ class SettingsScreenViewModel @Inject constructor(
         viewModelScope.launch { repository.setSecureMode(isEnabled) }
     }
 
+    // ✨ UPDATED CLEAR FUNCTION
     fun clearAllData() {
         viewModelScope.launch {
+            // 1. Wipe the Database (Notes & Categories)
+            notesRepository.clearAllDatabaseData()
+
+            // 2. Reset Preferences (keeping the Add Button toggle)
             repository.clearAllData()
-            // TODO: In the future, add call to clear Room Database here:
-            // noteRepository.clearAllNotes()
         }
+    }
+
+    fun updateGridView(isGrid: Boolean) {
+        viewModelScope.launch { repository.setGridView(isGrid) }
     }
 }

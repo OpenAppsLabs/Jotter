@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun GridListButton(
-    isEditing: Boolean,
+    isGridView: Boolean, // Renamed parameter to match usage
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -40,8 +40,9 @@ fun GridListButton(
 
     val iconButtonSize = 48.dp
 
+    // If List view (!isGridView), offset is 0 (Left). If Grid view, offset is size (Right).
     val offsetX by animateDpAsState(
-        targetValue = if (!isEditing) 0.dp else iconButtonSize,
+        targetValue = if (!isGridView) 0.dp else iconButtonSize,
         animationSpec = spring(
             dampingRatio = 0.8f,
             stiffness = 300f
@@ -67,7 +68,7 @@ fun GridListButton(
 
         // 2. The Buttons/Icons laid out in a Row on top of the indicator
         Row(Modifier.fillMaxSize()) {
-            // View Button Area (Left)
+            // List Button Area (Left)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -75,20 +76,20 @@ fun GridListButton(
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null, // 👇 Set indication to null to explicitly remove feedback
+                        indication = null,
                         role = Role.Button,
-                        onClick = { if (isEditing) onToggle() }
+                        onClick = { if (isGridView) onToggle() } // Click to switch to List
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Visibility,
-                    contentDescription = "View Mode",
-                    tint = if (!isEditing) activeContentColor else inactiveContentColor
+                    imageVector = Icons.AutoMirrored.Outlined.ViewList,
+                    contentDescription = "List View",
+                    tint = if (!isGridView) activeContentColor else inactiveContentColor
                 )
             }
 
-            // Edit Button Area (Right)
+            // Grid Button Area (Right)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -96,16 +97,16 @@ fun GridListButton(
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null, // 👇 Set indication to null to explicitly remove feedback
+                        indication = null,
                         role = Role.Button,
-                        onClick = { if (!isEditing) onToggle() }
+                        onClick = { if (!isGridView) onToggle() } // Click to switch to Grid
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Create,
-                    contentDescription = "Edit Mode",
-                    tint = if (isEditing) activeContentColor else inactiveContentColor
+                    imageVector = Icons.Outlined.GridView,
+                    contentDescription = "Grid View",
+                    tint = if (isGridView) activeContentColor else inactiveContentColor
                 )
             }
         }
