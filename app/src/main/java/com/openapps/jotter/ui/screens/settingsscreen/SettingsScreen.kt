@@ -36,7 +36,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.outlined.Dashboard // ✨ ADDED IMPORT
+import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -62,7 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.ClearAllDataDialog
 import com.openapps.jotter.ui.components.EditViewButton
-import com.openapps.jotter.ui.components.GridListButton // ✨ ADDED IMPORT
+import com.openapps.jotter.ui.components.GridListButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +76,6 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // ✨ FIX: Check loading state first
     if (uiState.isLoading) {
         Box(
             modifier = Modifier
@@ -86,11 +85,13 @@ fun SettingsScreen(
         return
     }
 
-    // Dialog visibility remains local UI state
     var showClearAllDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
@@ -119,198 +120,200 @@ fun SettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     actionIconContentColor = Color.Unspecified
                 )
             )
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+            Scaffold(
+                containerColor = Color.Transparent,
+                modifier = Modifier.fillMaxSize().padding(top = 0.dp) // Explicitly remove top padding for Scaffold
+            ) { innerPadding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding()), // Apply only bottom padding from innerPadding
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
 
-            // --- Group 1: Appearance ---
-            item {
-                SettingsGroup(title = "Appearance") {
-                    SettingsItemSwitch(
-                        icon = Icons.Default.DarkMode,
-                        title = "Dark Theme",
-                        subtitle = "Reduce eye strain",
-                        checked = uiState.isDarkMode,
-                        onCheckedChange = { viewModel.updateDarkMode(it) }
-                    )
-                    TinyGap()
+                    // --- Group 1: Appearance ---
+                    item {
+                        SettingsGroup(title = "Appearance") {
+                            SettingsItemSwitch(
+                                icon = Icons.Default.DarkMode,
+                                title = "Dark Theme",
+                                subtitle = "Reduce eye strain",
+                                checked = uiState.isDarkMode,
+                                onCheckedChange = { viewModel.updateDarkMode(it) }
+                            )
+                            TinyGap()
 
-                    SettingsItemSwitch(
-                        icon = Icons.Default.Brightness2,
-                        title = "True Black Mode",
-                        subtitle = "Use pure black for OLED displays",
-                        checked = uiState.isTrueBlackEnabled,
-                        onCheckedChange = { viewModel.updateTrueBlackMode(it) }
-                    )
-                    TinyGap()
+                            SettingsItemSwitch(
+                                icon = Icons.Default.Brightness2,
+                                title = "True Black Mode",
+                                subtitle = "Use pure black for OLED displays",
+                                checked = uiState.isTrueBlackEnabled,
+                                onCheckedChange = { viewModel.updateTrueBlackMode(it) }
+                            )
+                            TinyGap()
 
-                    SettingsItemSwitch(
-                        icon = Icons.Default.ColorLens,
-                        title = "Dynamic Colors",
-                        subtitle = "Adapt to wallpaper",
-                        checked = uiState.isDynamicColor,
-                        onCheckedChange = { viewModel.updateDynamicColor(it) }
-                    )
+                            SettingsItemSwitch(
+                                icon = Icons.Default.ColorLens,
+                                title = "Dynamic Colors",
+                                subtitle = "Adapt to wallpaper",
+                                checked = uiState.isDynamicColor,
+                                onCheckedChange = { viewModel.updateDynamicColor(it) }
+                            )
 
-                    TinyGap()
-                    SettingsItemEditView(
-                        icon = Icons.Default.Edit,
-                        title = "Default Open Mode",
-                        subtitle = "View OR Edit",
-                        isEditDefault = uiState.defaultOpenInEdit,
-                        onToggleEditDefault = { viewModel.updateDefaultOpenInEdit(it) }
-                    )
+                            TinyGap()
+                            SettingsItemEditView(
+                                icon = Icons.Default.Edit,
+                                title = "Default Open Mode",
+                                subtitle = "View OR Edit",
+                                isEditDefault = uiState.defaultOpenInEdit,
+                                onToggleEditDefault = { viewModel.updateDefaultOpenInEdit(it) }
+                            )
 
-                    TinyGap()
+                            TinyGap()
 
-                    // ✨ NEW: Default View Mode (Grid vs List)
-                    SettingsItemGridView(
-                        icon = Icons.Outlined.Dashboard,
-                        title = "Default View Mode",
-                        subtitle = if (uiState.isGridView) "Grid View" else "List View",
-                        isGridView = uiState.isGridView,
-                        onToggle = {
-                            viewModel.updateGridView(!uiState.isGridView)
+                            SettingsItemGridView(
+                                icon = Icons.Outlined.Dashboard,
+                                title = "Default View Mode",
+                                subtitle = if (uiState.isGridView) "Grid View" else "List View",
+                                isGridView = uiState.isGridView,
+                                onToggle = {
+                                    viewModel.updateGridView(!uiState.isGridView)
+                                }
+                            )
+                        }
+                    }
+
+                    // --- Group 2: General & Navigation ---
+                    item {
+                        SettingsGroup(title = "General & Navigation") {
+                            SettingsItemArrow(
+                                icon = Icons.Default.Archive,
+                                title = "Archived Notes",
+                                subtitle = "Notes removed from the home screen",
+                                onClick = onArchiveClick
+                            )
+                            TinyGap()
+
+                            SettingsItemArrow(
+                                icon = Icons.Default.Restore,
+                                title = "Trash",
+                                subtitle = "Permanently deleted after 7 days",
+                                onClick = onTrashClick
+                            )
+                            TinyGap()
+
+                            SettingsItemArrow(
+                                icon = Icons.AutoMirrored.Filled.Label,
+                                title = "Manage Tags",
+                                subtitle = "Add, edit, or remove note tags",
+                                onClick = onManageTagsClick
+                            )
+                            TinyGap()
+
+                            SettingsItemSwitch(
+                                icon = Icons.Default.Add,
+                                title = "Show Add Tag Button",
+                                subtitle = "Show/Hide '+' on Home screen",
+                                checked = uiState.showAddCategoryButton,
+                                onCheckedChange = { viewModel.updateShowAddCategoryButton(it) }
+                            )
+                            TinyGap()
+
+                            SettingsItemSwitch(
+                                icon = Icons.Default.Vibration,
+                                title = "Haptic Feedback",
+                                subtitle = "Vibrate on touch interactions",
+                                checked = uiState.isHapticEnabled,
+                                onCheckedChange = { viewModel.updateHapticEnabled(it) }
+                            )
+                        }
+                    }
+
+                    // --- Group 3: Security ---
+                    item {
+                        SettingsGroup(title = "Security") {
+                            SettingsItemSwitch(
+                                icon = Icons.Default.Fingerprint,
+                                title = "Biometric Unlock",
+                                subtitle = "Require fingerprint to open",
+                                checked = uiState.isBiometricEnabled,
+                                onCheckedChange = { viewModel.updateBiometricEnabled(it) }
+                            )
+                            TinyGap()
+
+                            SettingsItemSwitch(
+                                icon = Icons.Default.Security,
+                                title = "Secure Screen",
+                                subtitle = "Hide content in recent apps",
+                                checked = uiState.isSecureMode,
+                                onCheckedChange = { viewModel.updateSecureMode(it) }
+                            )
+                        }
+                    }
+
+                    // --- Group 4: Data Management & Reset ---
+                    item {
+                        SettingsGroup(title = "Data Management") {
+                            SettingsItemArrow(
+                                icon = Icons.Default.Backup,
+                                title = "Backup & Restore",
+                                subtitle = "Export or import notes",
+                                onClick = onBackupRestoreClick
+                            )
+                            TinyGap()
+
+                            SettingsItemArrow(
+                                icon = Icons.Default.DeleteForever,
+                                title = "Clear All Local Data",
+                                subtitle = "Reset app and delete all notes permanently",
+                                onClick = { showClearAllDialog = true },
+                                isDestructive = true
+                            )
+                        }
+                    }
+
+                    // --- Group 5: About ---
+                    item {
+                        SettingsGroup(title = "About") {
+                            SettingsItemArrow(
+                                icon = Icons.Default.Info,
+                                title = "Version",
+                                subtitle = "1.0.0 (Alpha)",
+                                onClick = { }
+                            )
+                            TinyGap()
+
+                            SettingsItemArrow(
+                                icon = Icons.Default.Lock,
+                                title = "Privacy Policy",
+                                onClick = { }
+                            )
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                }
+
+                if (showClearAllDialog) {
+                    ClearAllDataDialog(
+                        onDismiss = { showClearAllDialog = false },
+                        onConfirm = {
+                            showClearAllDialog = false
+                            viewModel.clearAllData()
                         }
                     )
                 }
             }
-
-            // --- Group 2: General & Navigation ---
-            item {
-                SettingsGroup(title = "General & Navigation") {
-                    SettingsItemArrow(
-                        icon = Icons.Default.Archive,
-                        title = "Archived Notes",
-                        subtitle = "Notes removed from the home screen",
-                        onClick = onArchiveClick
-                    )
-                    TinyGap()
-
-                    SettingsItemArrow(
-                        icon = Icons.Default.Restore,
-                        title = "Trash",
-                        subtitle = "Permanently deleted after 7 days",
-                        onClick = onTrashClick
-                    )
-                    TinyGap()
-
-                    SettingsItemArrow(
-                        icon = Icons.AutoMirrored.Filled.Label,
-                        title = "Manage Tags",
-                        subtitle = "Add, edit, or remove note tags",
-                        onClick = onManageTagsClick
-                    )
-                    TinyGap()
-
-                    // Toggle visibility of the Add Tag button on Home Screen
-                    SettingsItemSwitch(
-                        icon = Icons.Default.Add,
-                        title = "Show Add Tag Button",
-                        subtitle = "Show/Hide '+' on Home screen",
-                        checked = uiState.showAddCategoryButton,
-                        onCheckedChange = { viewModel.updateShowAddCategoryButton(it) }
-                    )
-                    TinyGap()
-
-                    SettingsItemSwitch(
-                        icon = Icons.Default.Vibration,
-                        title = "Haptic Feedback",
-                        subtitle = "Vibrate on touch interactions",
-                        checked = uiState.isHapticEnabled,
-                        onCheckedChange = { viewModel.updateHapticEnabled(it) }
-                    )
-                }
-            }
-
-            // --- Group 3: Security ---
-            item {
-                SettingsGroup(title = "Security") {
-                    SettingsItemSwitch(
-                        icon = Icons.Default.Fingerprint,
-                        title = "Biometric Unlock",
-                        subtitle = "Require fingerprint to open",
-                        checked = uiState.isBiometricEnabled,
-                        onCheckedChange = { viewModel.updateBiometricEnabled(it) }
-                    )
-                    TinyGap()
-
-                    SettingsItemSwitch(
-                        icon = Icons.Default.Security,
-                        title = "Secure Screen",
-                        subtitle = "Hide content in recent apps",
-                        checked = uiState.isSecureMode,
-                        onCheckedChange = { viewModel.updateSecureMode(it) }
-                    )
-                }
-            }
-
-            // --- Group 4: Data Management & Reset ---
-            item {
-                SettingsGroup(title = "Data Management") {
-                    SettingsItemArrow(
-                        icon = Icons.Default.Backup,
-                        title = "Backup & Restore",
-                        subtitle = "Export or import notes",
-                        onClick = onBackupRestoreClick
-                    )
-                    TinyGap()
-
-                    SettingsItemArrow(
-                        icon = Icons.Default.DeleteForever,
-                        title = "Clear All Local Data",
-                        subtitle = "Reset app and delete all notes permanently",
-                        onClick = { showClearAllDialog = true },
-                        isDestructive = true
-                    )
-                }
-            }
-
-            // --- Group 5: About ---
-            item {
-                SettingsGroup(title = "About") {
-                    SettingsItemArrow(
-                        icon = Icons.Default.Info,
-                        title = "Version",
-                        subtitle = "1.0.0 (Alpha)",
-                        onClick = { }
-                    )
-                    TinyGap()
-
-                    SettingsItemArrow(
-                        icon = Icons.Default.Lock,
-                        title = "Privacy Policy",
-                        onClick = { }
-                    )
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-
-        if (showClearAllDialog) {
-            ClearAllDataDialog(
-                onDismiss = { showClearAllDialog = false },
-                onConfirm = {
-                    showClearAllDialog = false
-                    viewModel.clearAllData()
-                }
-            )
         }
     }
 }
@@ -449,7 +452,6 @@ fun SettingsItemEditView(
     }
 }
 
-// ✨ NEW HELPER: Settings Item for Grid/List Toggle
 @Composable
 fun SettingsItemGridView(
     icon: ImageVector,
@@ -490,7 +492,6 @@ fun SettingsItemGridView(
             }
         }
 
-        // Uses the existing GridListButton component
         GridListButton(
             isGridView = isGridView,
             onToggle = onToggle
