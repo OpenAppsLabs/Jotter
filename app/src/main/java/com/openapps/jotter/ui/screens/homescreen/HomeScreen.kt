@@ -1,5 +1,6 @@
 package com.openapps.jotter.ui.screens.homescreen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,7 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onNoteClick: (Int) -> Unit,
@@ -45,6 +47,7 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyStaggeredGridState()
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
@@ -84,7 +87,9 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FAB(onClick = onAddNoteClick)
+            FAB(
+                onClick = onAddNoteClick
+            )
         }
     ) { innerPadding ->
         Column(
@@ -104,6 +109,7 @@ fun HomeScreen(
             )
 
             LazyVerticalStaggeredGrid(
+                state                = listState,
                 columns              = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
                 modifier             = Modifier.fillMaxSize(),
                 contentPadding       = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
@@ -122,7 +128,8 @@ fun HomeScreen(
                         isPinned  = note.isPinned,
                         isLocked  = note.isLocked,
                         isGridView= uiState.isGridView,
-                        onClick   = { viewModel.onNoteClicked(note.id); onNoteClick(note.id) }
+                        onClick   = { viewModel.onNoteClicked(note.id); onNoteClick(note.id) },
+                        modifier  = Modifier.animateItem()
                     )
                 }
             }
