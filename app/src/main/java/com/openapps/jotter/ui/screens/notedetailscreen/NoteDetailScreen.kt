@@ -26,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -60,6 +61,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -178,7 +180,9 @@ fun NoteDetailScreen(
                         onClick = { handleBack() },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier.padding(start = 12.dp).size(48.dp)
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             // Only show Close (X) if in Edit Mode AND Modified
@@ -200,7 +204,9 @@ fun NoteDetailScreen(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             enabled = true,
-                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -217,7 +223,9 @@ fun NoteDetailScreen(
                             onClick = { showNoteActionDialog = true }, // Trigger the action dialog
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
-                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -239,7 +247,9 @@ fun NoteDetailScreen(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             enabled = isSaveEnabled,
-                            modifier = Modifier.padding(end = 12.dp).size(48.dp)
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -313,7 +323,9 @@ fun NoteDetailScreen(
                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                             }
                         )
-                        .clickable { if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true }
+                        .clickable {
+                            if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true
+                        }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
@@ -392,6 +404,9 @@ fun NoteDetailScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words
+                ),
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {
@@ -425,6 +440,9 @@ fun NoteDetailScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     Box {

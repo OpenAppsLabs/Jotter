@@ -1,15 +1,19 @@
 package com.openapps.jotter.ui.screens.addcategoryscreen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -18,6 +22,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -34,6 +39,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,8 +47,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,6 +69,20 @@ fun AddCategoryScreen(
 ) {
     var newCategory by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
+    val isImeVisible = WindowInsets.ime.getBottom(density) > 0
+
+    // Clear focus when IME is dismissed (e.g. via keyboard down button)
+    LaunchedEffect(isImeVisible) {
+        if (!isImeVisible) {
+            focusManager.clearFocus()
+        }
+    }
+
+    // Intercept back press to clear focus immediately
+    BackHandler(enabled = isImeVisible) {
+        focusManager.clearFocus()
+    }
 
     // Observe categories from ViewModel
     val categories by viewModel.categories.collectAsStateWithLifecycle()
@@ -118,6 +141,11 @@ fun AddCategoryScreen(
             modifier             = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }
                 .padding(horizontal = 16.dp),
             verticalItemSpacing = 12.dp,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -152,6 +180,9 @@ fun AddCategoryScreen(
                             textStyle    = MaterialTheme.typography.bodyLarge,
                             colors       = transparentColors,
                             singleLine   = true,
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Sentences
+                            ),
                             modifier     = Modifier
                                 .weight(1f)
                                 .padding(bottom = 4.dp, start = 4.dp)
@@ -194,8 +225,6 @@ fun AddCategoryScreen(
                         modifier  = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 

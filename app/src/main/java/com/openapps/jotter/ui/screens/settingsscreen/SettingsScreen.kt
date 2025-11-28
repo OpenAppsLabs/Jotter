@@ -197,6 +197,15 @@ fun SettingsScreen(
                     // --- Group 2: General & Navigation ---
                     item {
                         SettingsGroup(title = "General & Navigation") {
+
+                            SettingsItemArrow(
+                                icon = Icons.AutoMirrored.Filled.Label,
+                                title = "Manage Tags",
+                                subtitle = "Add or remove note tags",
+                                onClick = onManageTagsClick
+                            )
+                            TinyGap()
+
                             SettingsItemArrow(
                                 icon = Icons.Default.Archive,
                                 title = "Archived Notes",
@@ -210,14 +219,6 @@ fun SettingsScreen(
                                 title = "Trash",
                                 subtitle = "Permanently deleted after 7 days",
                                 onClick = onTrashClick
-                            )
-                            TinyGap()
-
-                            SettingsItemArrow(
-                                icon = Icons.AutoMirrored.Filled.Label,
-                                title = "Manage Tags",
-                                subtitle = "Add, edit, or remove note tags",
-                                onClick = onManageTagsClick
                             )
                             TinyGap()
 
