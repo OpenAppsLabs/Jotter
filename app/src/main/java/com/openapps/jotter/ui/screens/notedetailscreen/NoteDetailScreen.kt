@@ -52,12 +52,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +74,8 @@ import com.openapps.jotter.ui.components.EditViewButton
 import com.openapps.jotter.ui.components.NoteActionDialog
 import com.openapps.jotter.ui.components.PinLockBar
 import com.openapps.jotter.ui.components.RestoreNoteDialog
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -101,10 +105,13 @@ fun NoteDetailScreen(
     // Controls visibility of the combined Archive/Trash dialog
     var showNoteActionDialog by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+
     // Helper for categories (FIXED: Now observing live database data)
     val availableCategories by viewModel.availableCategories.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     // 2. VIEW MODE LOGIC
@@ -324,7 +331,18 @@ fun NoteDetailScreen(
                             }
                         )
                         .clickable {
-                            if (!isViewMode && !isArchivedOrTrashed) showCategorySheet = true
+                            if (!isViewMode && !isArchivedOrTrashed) {
+                                if (isImeVisible) {
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                    scope.launch {
+                                        delay(200)
+                                        showCategorySheet = true
+                                    }
+                                } else {
+                                    showCategorySheet = true
+                                }
+                            }
                         }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
