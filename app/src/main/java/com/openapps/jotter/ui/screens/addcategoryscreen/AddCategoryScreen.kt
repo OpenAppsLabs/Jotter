@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +59,7 @@ fun AddCategoryScreen(
     viewModel: AddCategoryScreenViewModel = hiltViewModel()
 ) {
     var newCategory by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
 
     // Observe categories from ViewModel
     val categories by viewModel.categories.collectAsStateWithLifecycle()
@@ -162,7 +164,10 @@ fun AddCategoryScreen(
                             Surface(
                                 onClick   = {
                                     viewModel.addCategory(newCategory)
-                                    if (newCategory.isNotBlank()) newCategory = ""
+                                    if (newCategory.isNotBlank()) {
+                                        newCategory = ""
+                                        focusManager.clearFocus()
+                                    }
                                 },
                                 shape     = RoundedCornerShape(12.dp),
                                 color     = MaterialTheme.colorScheme.primary,
