@@ -289,17 +289,18 @@ fun SettingsScreen(
                     item {
                         SettingsGroup(title = "About") {
                             SettingsItemArrow(
+                                icon = Icons.Default.Lock,
+                                title = "Privacy Policy",
+                                onClick = onPrivacyPolicyClick
+                            )
+
+                            TinyGap()
+
+                            SettingsItemArrow(
                                 icon = Icons.Default.Info,
                                 title = "Version",
                                 subtitle = "1.0.0 (Alpha)",
                                 onClick = onAboutClick
-                            )
-                            TinyGap()
-
-                            SettingsItemArrow(
-                                icon = Icons.Default.Lock,
-                                title = "Privacy Policy",
-                                onClick = onPrivacyPolicyClick
                             )
                         }
                     }
