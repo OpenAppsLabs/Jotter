@@ -14,6 +14,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.openapps.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -24,6 +25,8 @@ fun PinLockBar(
     onTogglePin: () -> Unit = {},
     onToggleLock: () -> Unit = {}
 ) {
+    val haptics = rememberJotterHaptics()
+
     HorizontalFloatingToolbar(
         modifier = modifier,
         expanded = true,
@@ -31,7 +34,10 @@ fun PinLockBar(
             // --- Pin Toggle ---
             if (isPinned) {
                 FilledIconButton(
-                    onClick = onTogglePin,
+                    onClick = {
+                        haptics.tick()
+                        onTogglePin()
+                    },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -40,7 +46,12 @@ fun PinLockBar(
                     Icon(Icons.Filled.PushPin, contentDescription = "Unpin")
                 }
             } else {
-                IconButton(onClick = onTogglePin) {
+                IconButton(
+                    onClick = {
+                        haptics.tick()
+                        onTogglePin()
+                    }
+                ) {
                     Icon(Icons.Outlined.PushPin, contentDescription = "Pin")
                 }
             }
@@ -48,7 +59,10 @@ fun PinLockBar(
             // --- Lock Toggle ---
             if (isLocked) {
                 FilledIconButton(
-                    onClick = onToggleLock,
+                    onClick = {
+                        haptics.tick()
+                        onToggleLock()
+                    },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         // ✨ UPDATED: Use Error color for Locked state
                         containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -58,7 +72,12 @@ fun PinLockBar(
                     Icon(Icons.Filled.Lock, contentDescription = "Unlock")
                 }
             } else {
-                IconButton(onClick = onToggleLock) {
+                IconButton(
+                    onClick = {
+                        haptics.tick()
+                        onToggleLock()
+                    }
+                ) {
                     Icon(Icons.Outlined.LockOpen, contentDescription = "Lock")
                 }
             }

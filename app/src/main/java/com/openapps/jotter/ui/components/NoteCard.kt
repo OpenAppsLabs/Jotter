@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openapps.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +46,8 @@ fun NoteCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptics = rememberJotterHaptics()
+
     val sizeModifier = if (isGridView) {
         Modifier.aspectRatio(1f)
     } else {
@@ -77,7 +80,10 @@ fun NoteCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        onClick = onClick
+        onClick = {
+            haptics.tick()
+            onClick()
+        }
     ) {
         Column(
             modifier = Modifier.padding(16.dp).fillMaxSize(),

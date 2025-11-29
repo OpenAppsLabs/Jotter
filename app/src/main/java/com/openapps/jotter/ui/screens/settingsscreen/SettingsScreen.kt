@@ -65,6 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.openapps.jotter.ui.components.ClearAllDataDialog
 import com.openapps.jotter.ui.components.EditViewButton
 import com.openapps.jotter.ui.components.GridListButton
+import com.openapps.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -243,26 +244,26 @@ fun SettingsScreen(
                     }
 
                     // --- Group 3: Security ---
-                    item {
-                        SettingsGroup(title = "Security") {
-                            SettingsItemSwitch(
-                                icon = Icons.Default.Fingerprint,
-                                title = "Biometric Unlock",
-                                subtitle = "Require fingerprint to open",
-                                checked = uiState.isBiometricEnabled,
-                                onCheckedChange = { viewModel.updateBiometricEnabled(it) }
-                            )
-                            TinyGap()
-
-                            SettingsItemSwitch(
-                                icon = Icons.Default.Security,
-                                title = "Secure Screen",
-                                subtitle = "Hide content in recent apps",
-                                checked = uiState.isSecureMode,
-                                onCheckedChange = { viewModel.updateSecureMode(it) }
-                            )
-                        }
-                    }
+//                    item {
+//                        SettingsGroup(title = "Security") {
+//                            SettingsItemSwitch(
+//                                icon = Icons.Default.Fingerprint,
+//                                title = "Biometric Unlock",
+//                                subtitle = "Require fingerprint to open",
+//                                checked = uiState.isBiometricEnabled,
+//                                onCheckedChange = { viewModel.updateBiometricEnabled(it) }
+//                            )
+//                            TinyGap()
+//
+//                            SettingsItemSwitch(
+//                                icon = Icons.Default.Security,
+//                                title = "Secure Screen",
+//                                subtitle = "Hide content in recent apps",
+//                                checked = uiState.isSecureMode,
+//                                onCheckedChange = { viewModel.updateSecureMode(it) }
+//                            )
+//                        }
+//                    }
 
                     // --- Group 4: Data Management & Reset ---
                     item {
@@ -369,6 +370,8 @@ fun SettingsItemSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val haptics = rememberJotterHaptics()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -400,7 +403,10 @@ fun SettingsItemSwitch(
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = {
+                haptics.tick()
+                onCheckedChange(it)
+            },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.background,
                 checkedTrackColor = MaterialTheme.colorScheme.primary,
@@ -429,6 +435,8 @@ fun SettingsItemEditView(
     isEditDefault: Boolean,
     onToggleEditDefault: (Boolean) -> Unit
 ) {
+    val haptics = rememberJotterHaptics()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -463,7 +471,10 @@ fun SettingsItemEditView(
 
         EditViewButton(
             isEditing = isEditDefault,
-            onToggle = { onToggleEditDefault(!isEditDefault) }
+            onToggle = {
+                haptics.tick()
+                onToggleEditDefault(!isEditDefault)
+            }
         )
     }
 }
@@ -476,6 +487,8 @@ fun SettingsItemGridView(
     isGridView: Boolean,
     onToggle: () -> Unit
 ) {
+    val haptics = rememberJotterHaptics()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -510,7 +523,10 @@ fun SettingsItemGridView(
 
         GridListButton(
             isGridView = isGridView,
-            onToggle = onToggle
+            onToggle = {
+                haptics.tick()
+                onToggle()
+            }
         )
     }
 }
@@ -523,6 +539,8 @@ fun SettingsItemArrow(
     onClick: () -> Unit,
     isDestructive: Boolean = false
 ) {
+    val haptics = rememberJotterHaptics()
+
     val titleColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
     val iconColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -530,7 +548,10 @@ fun SettingsItemArrow(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = {
+                haptics.click()
+                onClick()
+            })
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

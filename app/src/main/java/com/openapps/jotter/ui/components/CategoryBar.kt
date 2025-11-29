@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.openapps.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +39,7 @@ fun CategoryBar(
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
+    val haptics = rememberJotterHaptics()
 
     // ✨ SIMPLIFIED LOGIC: Construct list with only "All" and user categories
     val displayList = remember(categories) {
@@ -102,6 +104,7 @@ fun CategoryBar(
                 ),
                 selected = isSelected,
                 onClick = {
+                    haptics.tick()
                     if (isSelected && category != "All") {
                         onCategorySelect("All")
                     } else {
@@ -122,7 +125,10 @@ fun CategoryBar(
                         fadeOutSpec = tween(300)
                     ),
                     selected = false,
-                    onClick = onAddCategoryClick,
+                    onClick = {
+                        haptics.click()
+                        onAddCategoryClick()
+                    },
                     label = { Text("Add") },
                     leadingIcon = {
                         Icon(

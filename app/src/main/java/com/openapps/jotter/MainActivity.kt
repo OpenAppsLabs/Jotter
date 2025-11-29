@@ -4,12 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import com.openapps.jotter.data.repository.UserPreferencesRepository
 import com.openapps.jotter.navigation.AppNavHost
 import com.openapps.jotter.ui.theme.JotterTheme
+import com.openapps.jotter.ui.theme.LocalHapticEnabled
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -30,8 +32,11 @@ class MainActivity : ComponentActivity() {
                 isTrueBlackEnabled = userPreferences.isTrueBlackEnabled,
                 isDynamicColor = userPreferences.isDynamicColor
             ) {
-                val navController = rememberNavController()
-                AppNavHost(navController = navController)
+                // Provide the haptic preference globally
+                CompositionLocalProvider(LocalHapticEnabled provides userPreferences.isHapticEnabled) {
+                    val navController = rememberNavController()
+                    AppNavHost(navController = navController)
+                }
             }
         }
     }

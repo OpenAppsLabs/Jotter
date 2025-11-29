@@ -140,7 +140,7 @@ fun AboutScreen(
             )
 
             Text(
-                text = "Simple. Secure. Notes.",
+                text = "Simple. Secure. Open.",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
@@ -162,7 +162,7 @@ fun AboutScreen(
                 ) {
                     AboutItem(label = "Version", value = "1.0.0 Alpha")
                     Divider()
-                    AboutItem(label = "Developer", value = "Open Apps")
+                    AboutItem(label = "Developer", value = "Open Apps Labs")
                     Divider()
                     AboutItem(label = "License", value = "GNU GPL v3.0")
                 }
@@ -183,7 +183,9 @@ fun AboutScreen(
                     ActionItem(
                         icon = Icons.Outlined.Code,
                         label = "Source Code",
-                        onClick = { /* TODO */ }
+                        onClick = {
+                            uriHandler.openUri("https://github.com/openappslabs/Jotter")
+                        }
                     )
                     Divider()
                     ActionItem(
@@ -193,22 +195,17 @@ fun AboutScreen(
                             uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.en.html")
                         }
                     )
-                    Divider()
-                    ActionItem(
-                        icon = Icons.Outlined.Description,
-                        label = "Third-Party Notices",
-                        onClick = { /* TODO */ }
-                    )
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "© ${Year.now()} Open Apps",
+                text = "Made with ❤️ | © ${Year.now()} Open Apps",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.padding(vertical = 32.dp)
+                modifier = Modifier.padding(vertical = 32.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
     }

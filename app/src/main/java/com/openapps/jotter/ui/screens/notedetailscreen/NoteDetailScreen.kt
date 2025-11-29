@@ -74,6 +74,7 @@ import com.openapps.jotter.ui.components.EditViewButton
 import com.openapps.jotter.ui.components.NoteActionDialog
 import com.openapps.jotter.ui.components.PinLockBar
 import com.openapps.jotter.ui.components.RestoreNoteDialog
+import com.openapps.jotter.ui.theme.rememberJotterHaptics
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -91,6 +92,8 @@ fun NoteDetailScreen(
     onNavigateToHome: () -> Unit,
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
+    val haptics = rememberJotterHaptics()
+
     // 1. VIEWMODEL STATE
     val uiState by viewModel.uiState.collectAsState()
     val userPrefs by viewModel.userPreferences.collectAsState()
@@ -247,6 +250,7 @@ fun NoteDetailScreen(
                         // Show SAVE BUTTON
                         Surface(
                             onClick = {
+                                haptics.success() // Success feedback on save
                                 viewModel.saveNote()
                                 isViewMode = true
                                 keyboardController?.hide()
@@ -340,6 +344,7 @@ fun NoteDetailScreen(
                                         showCategorySheet = true
                                     }
                                 } else {
+                                    haptics.click()
                                     showCategorySheet = true
                                 }
                             }
@@ -488,6 +493,7 @@ fun NoteDetailScreen(
             categories = availableCategories,
             selectedCategory = uiState.category,
             onCategorySelect = { newCategory ->
+                haptics.tick()
                 viewModel.updateCategory(newCategory)
                 isViewMode = false
             },
@@ -519,6 +525,7 @@ fun NoteDetailScreen(
         DeleteNoteDialog(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
+                haptics.heavy() // Destructive action feedback
                 showDiscardDialog = false
                 viewModel.deleteNote()
                 onBackClick()
@@ -531,11 +538,13 @@ fun NoteDetailScreen(
         NoteActionDialog(
             onDismiss = { showNoteActionDialog = false },
             onArchiveConfirm = {
+                haptics.tick() // Archive feedback
                 showNoteActionDialog = false
                 viewModel.archiveNote()
                 onBackClick() // FIX 1: Go back to the previous list (Home/Archive)
             },
             onDeleteConfirm = {
+                haptics.heavy() // Trash/Delete feedback
                 showNoteActionDialog = false
                 viewModel.deleteNote()
                 onBackClick() // FIX 2: Go back to the previous list (Home/Trash)
@@ -548,6 +557,7 @@ fun NoteDetailScreen(
         RestoreNoteDialog(
             onDismiss = { showRestoreNoteDialog = false },
             onConfirm = {
+                haptics.success() // Restore feedback
                 showRestoreNoteDialog = false
                 viewModel.restoreNote()
                 onBackClick() // ✨ FIX 3: Go back to the previous list (Archive/Trash)
