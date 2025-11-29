@@ -31,18 +31,7 @@ Jotter is built using **Modern Android Development (MAD)** standards:
 
 ## 🏗️ Architecture
 
-This app follows the recommended Google architecture guide:
+This app follows the recommended MVVM structure:
 *   **UI Layer:** Composable functions observing `StateFlow` from ViewModels (utilizing `lifecycle-runtime-compose`).
 *   **Domain/Data Layer:** Repositories mediating between the UI and local data sources (Room/DataStore).
 *   **Single Activity:** Uses a single `MainActivity` with Compose Navigation to handle screens.
-
-## 💻 Building the Project
-
-### Prerequisites
-*   Android Studio Ladybug | 2024.2.1 or newer.
-*   JDK 17 or higher.
-
-### Steps
-1.  Clone the repository:
-    
-    
