@@ -87,7 +87,7 @@ fun PrivacyPolicyScreen(
             // Sections
             PolicySection(
                 title = "1. Introduction",
-                content = "Welcome to Jotter! We respect your privacy. This policy explains how we handle data in the app. If you have any questions, feel free to contact us."
+                content = "Welcome to Jotter! I respect your privacy. This policy explains how I handle data in the app. If you have any questions, feel free to contact me."
             )
 
             PolicySection(
@@ -97,7 +97,7 @@ fun PrivacyPolicyScreen(
 
             PolicySection(
                 title = "3. Use of Your Information",
-                content = "We do not use, share, or process any of your data. Your notes and information remain on your device and are used only for the functionality of the app."
+                content = "I do not use, share, or process any of your data. Your notes and information remain on your device and are used only for the functionality of the app."
             )
 
             PolicySection(
@@ -107,7 +107,7 @@ fun PrivacyPolicyScreen(
 
             PolicySection(
                 title = "5. Contact Us",
-                content = "If you have any questions or concerns, you can reach us via our GitHub."
+                content = "If you have any questions or concerns, you can reach out to me via our GitHub."
             )
         }
     }
