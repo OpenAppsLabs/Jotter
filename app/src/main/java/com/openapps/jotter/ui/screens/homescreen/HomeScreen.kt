@@ -64,7 +64,7 @@ fun HomeScreen(
                     Text(
                         text     = "Jotter",
                         style    = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Light
                     )
                 },
                 actions = {
