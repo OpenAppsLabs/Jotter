@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.Year
@@ -122,7 +123,7 @@ fun AboutScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.EditNote,
+                        painter = painterResource(id = com.openapps.jotter.R.drawable.app_icon),
                         contentDescription = "App Icon",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(72.dp)
