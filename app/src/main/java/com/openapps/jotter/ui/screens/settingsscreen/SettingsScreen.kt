@@ -107,10 +107,6 @@ fun SettingsScreen(
     var showClearAllDialog by remember { mutableStateOf(false) }
     var showDisableLockWarningDialog by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = true) {
-        onBackClick()
-    }
-
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface
