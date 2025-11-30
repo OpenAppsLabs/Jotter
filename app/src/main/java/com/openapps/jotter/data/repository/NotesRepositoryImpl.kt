@@ -114,4 +114,8 @@ class NotesRepositoryImpl @Inject constructor(
         noteDao.deleteAllNotes()
         categoryDao.deleteAllCategories()
     }
+
+    override suspend fun unlockAllNotes() {
+        noteDao.unlockAllNotes()
+    }
 }

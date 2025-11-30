@@ -65,4 +65,8 @@ interface NoteDao {
     // Snapshot for Backup
     @Query("SELECT * FROM notes")
     suspend fun getAllNotesSync(): List<Note>
+
+    // ✨ NEW: Unlock all notes
+    @Query("UPDATE notes SET isLocked = 0 WHERE isLocked = 1")
+    suspend fun unlockAllNotes()
 }

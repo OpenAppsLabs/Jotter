@@ -37,4 +37,6 @@ interface NotesRepository {
     suspend fun restoreBackupData(notes: List<Note>, categories: List<Category>)
 
     suspend fun clearAllDatabaseData()
+
+    suspend fun unlockAllNotes() // ✨ ADDED
 }

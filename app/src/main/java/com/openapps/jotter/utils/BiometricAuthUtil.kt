@@ -40,11 +40,8 @@ object BiometricAuthUtil {
 
     fun isBiometricAvailable(context: Context): Boolean {
         val biometricManager = BiometricManager.from(context)
-        val authenticators = if (Build.VERSION.SDK_INT >= 30) {
-            BIOMETRIC_STRONG or DEVICE_CREDENTIAL
-        } else {
-            BIOMETRIC_STRONG
-        }
+        // Allow Biometric OR Device Credential (PIN/Pattern)
+        val authenticators = BIOMETRIC_STRONG or DEVICE_CREDENTIAL
         return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
     }
 
@@ -75,13 +72,8 @@ object BiometricAuthUtil {
         val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setSubtitle(subtitle)
-
-        if (Build.VERSION.SDK_INT >= 30) {
-            promptInfoBuilder.setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-        } else {
-            promptInfoBuilder.setAllowedAuthenticators(BIOMETRIC_STRONG)
-            promptInfoBuilder.setNegativeButtonText("Cancel")
-        }
+            .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+            // Note: setNegativeButtonText is NOT allowed when DEVICE_CREDENTIAL is used
 
         biometricPrompt.authenticate(promptInfoBuilder.build())
     }

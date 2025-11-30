@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapps.jotter.data.repository.NotesRepository
 import com.openapps.jotter.data.repository.UserPreferencesRepository
-import com.openapps.jotter.utils.BiometricAuthType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +30,6 @@ class SettingsScreenViewModel @Inject constructor(
                 defaultOpenInEdit = prefs.defaultOpenInEdit,
                 isHapticEnabled = prefs.isHapticEnabled,
                 isBiometricEnabled = prefs.isBiometricEnabled,
-                biometricAuthType = prefs.biometricAuthType, // ✨ ADDED
                 isSecureMode = prefs.isSecureMode,
                 showAddCategoryButton = prefs.showAddCategoryButton,
                 isGridView = prefs.isGridView
@@ -52,7 +50,6 @@ class SettingsScreenViewModel @Inject constructor(
         val defaultOpenInEdit: Boolean = false,
         val isHapticEnabled: Boolean = true,
         val isBiometricEnabled: Boolean = false,
-        val biometricAuthType: BiometricAuthType = BiometricAuthType.NONE, // ✨ ADDED
         val isSecureMode: Boolean = false,
         val showAddCategoryButton: Boolean = true,
         val isGridView: Boolean = false
@@ -88,18 +85,7 @@ class SettingsScreenViewModel @Inject constructor(
         viewModelScope.launch { 
             repository.setBiometric(isEnabled) 
             if (!isEnabled) {
-                repository.setBiometricAuthType(BiometricAuthType.NONE)
-            }
-        }
-    }
-
-    // ✨ ADDED
-    fun updateBiometricAuthType(type: BiometricAuthType) {
-        viewModelScope.launch { 
-            repository.setBiometricAuthType(type)
-            // If user selects a type, automatically enable the main toggle if it wasn't already
-            if (type != BiometricAuthType.NONE) {
-                repository.setBiometric(true)
+                notesRepository.unlockAllNotes() // ✨ Remove lock from all notes when disabling
             }
         }
     }

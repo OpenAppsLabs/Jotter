@@ -3,10 +3,8 @@ package com.openapps.jotter.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import com.openapps.jotter.utils.BiometricAuthType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -22,7 +20,6 @@ data class UserPreferences(
     val defaultOpenInEdit: Boolean = false,
     val isHapticEnabled: Boolean = true,
     val isBiometricEnabled: Boolean = false,
-    val biometricAuthType: BiometricAuthType = BiometricAuthType.NONE, // ✨ ADDED
     val isSecureMode: Boolean = false,
     val showAddCategoryButton: Boolean = true
 )
@@ -41,7 +38,6 @@ class UserPreferencesRepository @Inject constructor(
         val DEFAULT_OPEN_EDIT = booleanPreferencesKey("default_open_edit")
         val IS_HAPTIC = booleanPreferencesKey("is_haptic")
         val IS_BIOMETRIC = booleanPreferencesKey("is_biometric")
-        val BIOMETRIC_AUTH_TYPE = stringPreferencesKey("biometric_auth_type") // ✨ ADDED
         val IS_SECURE_MODE = booleanPreferencesKey("is_secure_mode")
         val SHOW_ADD_CATEGORY_BUTTON = booleanPreferencesKey("show_add_category_button")
     }
@@ -56,13 +52,6 @@ class UserPreferencesRepository @Inject constructor(
             }
         }
         .map { preferences ->
-            val authTypeString = preferences[Keys.BIOMETRIC_AUTH_TYPE] ?: BiometricAuthType.NONE.name
-            val authType = try {
-                BiometricAuthType.valueOf(authTypeString)
-            } catch (e: IllegalArgumentException) {
-                BiometricAuthType.NONE
-            }
-
             UserPreferences(
                 isGridView = preferences[Keys.IS_GRID_VIEW] ?: false,
                 isDarkMode = preferences[Keys.IS_DARK_MODE] ?: false,
@@ -71,7 +60,6 @@ class UserPreferencesRepository @Inject constructor(
                 defaultOpenInEdit = preferences[Keys.DEFAULT_OPEN_EDIT] ?: false,
                 isHapticEnabled = preferences[Keys.IS_HAPTIC] ?: true,
                 isBiometricEnabled = preferences[Keys.IS_BIOMETRIC] ?: false,
-                biometricAuthType = authType, // ✨ ADDED
                 isSecureMode = preferences[Keys.IS_SECURE_MODE] ?: false,
                 showAddCategoryButton = preferences[Keys.SHOW_ADD_CATEGORY_BUTTON] ?: true
             )
@@ -103,11 +91,6 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setBiometric(enabled: Boolean) {
         dataStore.edit { it[Keys.IS_BIOMETRIC] = enabled }
-    }
-    
-    // ✨ ADDED
-    suspend fun setBiometricAuthType(type: BiometricAuthType) {
-        dataStore.edit { it[Keys.BIOMETRIC_AUTH_TYPE] = type.name }
     }
 
     suspend fun setSecureMode(enabled: Boolean) {

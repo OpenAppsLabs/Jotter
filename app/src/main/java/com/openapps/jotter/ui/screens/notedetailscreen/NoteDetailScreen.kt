@@ -1,5 +1,6 @@
 package com.openapps.jotter.ui.screens.notedetailscreen
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -313,10 +314,13 @@ fun NoteDetailScreen(
                                 viewModel.toggleLock()
                             } else {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Enable Note Lock in Settings to use this feature",
-                                        duration = SnackbarDuration.Short
-                                    )
+                                    // Check if a snackbar is already visible to prevent spamming
+                                    if (snackbarHostState.currentSnackbarData == null) {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Enable Note Lock in Settings to use this feature",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
                         }
