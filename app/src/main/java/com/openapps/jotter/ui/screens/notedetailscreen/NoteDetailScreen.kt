@@ -168,7 +168,13 @@ fun NoteDetailScreen(
         }
     }
 
-    BackHandler(enabled = true) {
+    // Conditional Back Handler
+    // We only intercept the back gesture if we are NOT in View Mode (i.e., editing) AND:
+    // 1. The note is modified (might need discard dialog) OR
+    // 2. The note is already persisted (need to switch back to View Mode instead of exiting)
+    // If it's a new clean note or we are just viewing, we let the system handle it (enabling predictive back).
+    val shouldInterceptBack = !isViewMode && (uiState.isModified || uiState.isNotePersisted)
+    BackHandler(enabled = shouldInterceptBack) {
         handleBack()
     }
 
