@@ -17,7 +17,7 @@ Jotter is a modern, open-source Android note-taking application built with Jetpa
 * **Dynamic Colors:** App adapts to your system colors.  
 * **Trash & Archive:** Organize your notes without losing data.  
 * **Haptics Feedback:** Subtle feedback for interactions.  
-* **Multiple View Modes:** List, grid, or compact views for your notes.  
+* **Multiple View Modes:** List, grid views for your notes.  
 
 ## 🛠️ Tech Stack
 
