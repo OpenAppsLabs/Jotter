@@ -10,23 +10,25 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-
 android {
     namespace = "com.openapps.jotter"
     compileSdk = 36
     signingConfigs {
         create("release") {
-            if (localPropertiesFile.exists()) {
-                storeFile = file("Jotter.jks")
-                storePassword = localProperties.getProperty("JOTTER_KEYSTORE_PASSWORD")
-                keyAlias = localProperties.getProperty("JOTTER_KEY_ALIAS")
-                keyPassword = localProperties.getProperty("JOTTER_KEY_PASSWORD")
+            // 1. Define file locations
+            val localPropertiesFile = rootProject.file("local.properties")
+            val keystoreFile = file("Jotter.jks")
+
+            // 2. Only load keys if BOTH files exist (Your PC)
+            if (localPropertiesFile.exists() && keystoreFile.exists()) {
+                val properties = Properties()
+                properties.load(FileInputStream(localPropertiesFile))
+                storeFile = keystoreFile
+                storePassword = properties.getProperty("JOTTER_KEYSTORE_PASSWORD")
+                keyAlias = properties.getProperty("JOTTER_KEY_ALIAS")
+                keyPassword = properties.getProperty("JOTTER_KEY_PASSWORD")
             }
+            // 3. If files are missing (F-Droid), do nothing.
         }
     }
 
@@ -41,13 +43,15 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (file("Jotter.jks").exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -80,7 +84,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.navigation.compose) // Or latest version
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.reorderable)
 
     implementation(libs.hilt.android)
