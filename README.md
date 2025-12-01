@@ -75,6 +75,8 @@ This helps me fix problems faster and improve the app for everyone.
 I welcome all constructive feedback and suggestions.
 This app is still in progress.
 
+If you find Jotter useful, please consider ⭐ starring the repository to help others discover it.
+
 ## 📄 License
 
 Jotter is licensed under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
