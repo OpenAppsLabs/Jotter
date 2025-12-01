@@ -10,12 +10,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-
 android {
     namespace = "com.openapps.jotter"
     compileSdk = 36
@@ -27,9 +21,8 @@ android {
 
             // 2. Only load keys if BOTH files exist (Your PC)
             if (localPropertiesFile.exists() && keystoreFile.exists()) {
-                val properties = Properties() // Fixed: removed 'java.util.'
-                properties.load(FileInputStream(localPropertiesFile)) // Fixed: removed 'java.io.'
-
+                val properties = Properties()
+                properties.load(FileInputStream(localPropertiesFile))
                 storeFile = keystoreFile
                 storePassword = properties.getProperty("JOTTER_KEYSTORE_PASSWORD")
                 keyAlias = properties.getProperty("JOTTER_KEY_ALIAS")
@@ -91,7 +84,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.navigation.compose) // Or latest version
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.reorderable)
 
     implementation(libs.hilt.android)
