@@ -161,9 +161,9 @@ fun AboutScreen(
                 Column(
                     modifier = Modifier.padding(vertical = 8.dp)
                 ) {
-                    AboutItem(label = "Version", value = "1.0.0 Alpha")
+                    AboutItem(label = "Version", value = "1.0.0")
                     Divider()
-                    AboutItem(label = "Developer", value = "Open Apps Labs")
+                    AboutItem(label = "Developer", value = "Open Apps")
                     Divider()
                     AboutItem(label = "License", value = "GNU GPL v3.0")
                 }
