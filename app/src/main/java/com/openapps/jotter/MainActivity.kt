@@ -12,7 +12,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
 import com.openapps.jotter.data.repository.UserPreferencesRepository
 import com.openapps.jotter.navigation.AppNavHost
-import com.openapps.jotter.ui.components.ChangelogManager
 import com.openapps.jotter.ui.theme.JotterTheme
 import com.openapps.jotter.ui.theme.LocalHapticEnabled
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,9 +47,7 @@ class MainActivity : FragmentActivity() {
             ) {
                 CompositionLocalProvider(LocalHapticEnabled provides userPreferences.isHapticEnabled) {
                     val navController = rememberNavController()
-                    ChangelogManager {
                         AppNavHost(navController = navController)
-                    }
                 }
             }
         }
