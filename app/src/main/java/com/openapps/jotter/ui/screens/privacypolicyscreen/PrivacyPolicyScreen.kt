@@ -28,7 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +85,15 @@ fun PrivacyPolicyScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Date Header
+            Text(
+                text = "Last Updated: December 03, 2025",
+                style = MaterialTheme.typography.bodySmall,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 24.dp),
+                textAlign = TextAlign.Center
+            )
 
             // Sections
             PolicySection(
@@ -96,19 +107,26 @@ fun PrivacyPolicyScreen(
             )
 
             PolicySection(
-                title = "3. Use of Your Information",
+                title = "3. Permissions & Internet Usage",
+                content = "Jotter operates completely offline with one exception: it uses Internet access solely to check GitHub for newer versions of the app.\nIf you choose to update the app from within Jotter, it may request the 'Request Install Packages' permission to download and install the update."
+            )
+
+            PolicySection(
+                title = "4. Use of Your Information",
                 content = "I do not use, share, or process any of your data. Your notes and information remain on your device and are used only for the functionality of the app."
             )
 
             PolicySection(
-                title = "4. Third-Party Services",
+                title = "5. Third-Party Services",
                 content = "Jotter does not use third-party services, including analytics, ads, or data collection tools. Your data stays private and local to your device."
             )
 
             PolicySection(
-                title = "5. Contact Us",
+                title = "6. Contact Me",
                 content = "If you have any questions or concerns, you can reach out to me via our GitHub."
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -131,7 +149,7 @@ fun PolicySection(title: String, content: String) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,

@@ -339,7 +339,7 @@ fun SettingsScreen(
                     item {
                         SettingsGroup(title = "About") {
                             SettingsItemArrow(
-                                icon = Icons.Default.PrivacyTip, // ✨ CHANGED to PrivacyTip
+                                icon = Icons.Default.PrivacyTip,
                                 title = "Privacy Policy",
                                 onClick = onPrivacyPolicyClick
                             )
@@ -349,7 +349,7 @@ fun SettingsScreen(
                             SettingsItemArrow(
                                 icon = Icons.Default.Info,
                                 title = "Version",
-                                subtitle = "1.0.0 (Alpha)",
+                                subtitle = com.openapps.jotter.BuildConfig.VERSION_NAME,
                                 onClick = onAboutClick
                             )
                         }

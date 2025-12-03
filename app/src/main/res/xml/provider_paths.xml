@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Matches setDestinationInExternalFilesDir -->
+    <external-files-path name="download_updates" path="Download/" />
+</paths>
