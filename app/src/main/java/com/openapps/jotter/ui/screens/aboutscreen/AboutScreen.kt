@@ -1,5 +1,6 @@
 package com.openapps.jotter.ui.screens.aboutscreen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Gavel
-import androidx.compose.material.icons.rounded.EditNote
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -41,18 +41,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.Year
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: AboutScreenViewModel = hiltViewModel()
 ) {
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    val updateStatus = viewModel.updateStatus
 
     Scaffold(
         topBar = {
@@ -103,7 +108,7 @@ fun AboutScreen(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // App Icon with Elevation and Gradient
+            // App Icon
             Surface(
                 shape = RoundedCornerShape(32.dp),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -139,7 +144,6 @@ fun AboutScreen(
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-
             Text(
                 text = "Simple. Secure. Open.",
                 style = MaterialTheme.typography.titleMedium,
@@ -152,16 +156,12 @@ fun AboutScreen(
             // Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)),
                 shape = RoundedCornerShape(28.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    AboutItem(label = "Version", value = "1.0.0")
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    AboutItem(label = "Version", value = com.openapps.jotter.BuildConfig.VERSION_NAME)
                     Divider()
                     AboutItem(label = "Developer", value = "Open Apps")
                     Divider()
@@ -171,30 +171,34 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // FOSS & Legal Actions
+            // FOSS Actions
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(28.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column {
+                    ActionItem(icon = Icons.Outlined.Code, label = "Source Code", onClick = { uriHandler.openUri("https://github.com/openappslabs/Jotter") })
+                    Divider()
+                    ActionItem(icon = Icons.Outlined.Gavel, label = "View License", onClick = { uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.en.html") })
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Update Action
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)),
                 shape = RoundedCornerShape(28.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column {
                     ActionItem(
-                        icon = Icons.Outlined.Code,
-                        label = "Source Code",
-                        onClick = {
-                            uriHandler.openUri("https://github.com/openappslabs/Jotter")
-                        }
-                    )
-                    Divider()
-                    ActionItem(
-                        icon = Icons.Outlined.Gavel,
-                        label = "View License",
-                        onClick = {
-                            uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.en.html")
-                        }
+                        icon = Icons.Outlined.SystemUpdate,
+                        label = "Check For Update",
+                        onClick = { viewModel.checkForUpdate() }
                     )
                 }
             }
@@ -209,79 +213,56 @@ fun AboutScreen(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
+
+        // --- ONE DIALOG TO RULE THEM ALL ---
+        if (updateStatus !is UpdateStatus.Idle) {
+            UnifiedUpdateDialog(
+                updateStatus = updateStatus,
+                onDownloadClick = { url ->
+                    viewModel.downloadUpdate(url)
+                },
+                onGithubClick = {
+                    uriHandler.openUri("https://github.com/openappslabs/Jotter/releases/latest")
+                    viewModel.resetState()
+                },
+                onCancelDownload = {
+                    viewModel.cancelDownload()
+                },
+                onDismiss = {
+                    viewModel.resetState()
+                },
+                onInstallClick = {
+                    viewModel.installUpdate()
+                },
+            )
+        }
     }
 }
 
 @Composable
-fun AboutItem(
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+fun AboutItem(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
 @Composable
-fun ActionItem(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
+fun ActionItem(icon: ImageVector, label: String, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 24.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
+        Icon(imageVector = Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
 fun Divider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 24.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-    )
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 }
 
-// Helper to avoid import conflicts
 @Composable
 fun Spacer(modifier: Modifier) {
     androidx.compose.foundation.layout.Spacer(modifier)
