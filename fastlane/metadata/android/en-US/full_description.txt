@@ -1,0 +1,1 @@
+Jotter is a minimal, privacy-friendly notes app built with Kotlin and Jetpack. It lets you quickly create, edit, and organize notes without ads, tracking, or unnecessary clutter. All data is stored locally on your device and the full source code is available on GitHub.

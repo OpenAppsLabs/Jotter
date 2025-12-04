@@ -1,0 +1,1 @@
+Minimal open-source notes app with a clean, distraction-free UI.

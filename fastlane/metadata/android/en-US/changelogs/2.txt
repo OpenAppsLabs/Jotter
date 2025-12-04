@@ -1,0 +1,5 @@
+Jotter 1.1.0:
+- Added in-app update support so you can check for, download, and install new versions directly from the app.
+- Introduced a new, cleaner update dialog with smoother animations and a stable layout.
+- Fixed inconsistent spacing and layout issues across update dialog states.
+- Updated the privacy policy to clearly describe the use of Internet and install permissions required for the update feature.
