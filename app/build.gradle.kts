@@ -11,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace = "com.openapps.jotter"
+    namespace = "com.openappslabs.jotter"
     compileSdk = 36
     signingConfigs {
         create("release") {
@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.openapps.jotter"
+        applicationId = "com.openappslabs.jotter"
         minSdk = 29
         targetSdk = 36
         versionCode = 2

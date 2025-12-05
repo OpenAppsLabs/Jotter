@@ -23,7 +23,7 @@
 # --- GSON / R8 RULES FOR DATA MODELS ---
 
 # 1. Keep Data Models so field names match JSON keys
--keep class com.openapps.jotter.data.model.** { *; }
+-keep class com.openappslabs.jotter.data.model.** { *; }
 
 # 2. CRITICAL: Keep Generic Signatures.
 # Without this, R8 strips the type 'List<Note>' down to just 'List'.
