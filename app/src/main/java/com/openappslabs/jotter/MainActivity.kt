@@ -4,10 +4,14 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
 import com.openappslabs.jotter.data.repository.UserPreferencesRepository
@@ -45,9 +49,14 @@ class MainActivity : FragmentActivity() {
                 isTrueBlackEnabled = userPreferences.isTrueBlackEnabled,
                 isDynamicColor = userPreferences.isDynamicColor
             ) {
-                CompositionLocalProvider(LocalHapticEnabled provides userPreferences.isHapticEnabled) {
-                    val navController = rememberNavController()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    CompositionLocalProvider(LocalHapticEnabled provides userPreferences.isHapticEnabled) {
+                        val navController = rememberNavController()
                         AppNavHost(navController = navController)
+                    }
                 }
             }
         }

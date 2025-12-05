@@ -162,7 +162,7 @@ fun AboutScreen(
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     AboutItem(label = "Version", value = com.openappslabs.jotter.BuildConfig.VERSION_NAME)
                     Divider()
-                    AboutItem(label = "Developer", value = "Open Apps")
+                    AboutItem(label = "Developer", value = "Open Apps Labs")
                     Divider()
                     AboutItem(label = "License", value = "GNU GPL v3.0")
                 }
@@ -205,7 +205,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Made with ❤️ | © ${Year.now()} Open Apps",
+                text = "Made with ❤️ | © ${Year.now()} Open Apps Labs",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(vertical = 32.dp),

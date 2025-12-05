@@ -1,0 +1,4 @@
+Version 1.2.1
+
+- Fixed an issue where the app name was displaying incorrectly after a recent update.
+- Resolved a bug causing a white flash when navigating between screens.
