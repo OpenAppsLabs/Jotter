@@ -1,7 +1,9 @@
+Jotter 1.2.0:
+- Global package name change for future stability.
+
 ⚠️ Important Update: Action Required
 
 Please read this carefully to avoid data loss.
-
 I have globally renamed the application package from `com.openapps.jotter` to `com.openappslabs.jotter`.
 
 🛑 What this means for you
