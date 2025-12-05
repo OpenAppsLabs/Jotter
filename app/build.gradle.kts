@@ -15,21 +15,27 @@ android {
     compileSdk = 36
     signingConfigs {
         create("release") {
-            // 1. Define file locations
             val localPropertiesFile = rootProject.file("local.properties")
-            val keystoreFile = file("Jotter.jks")
-
-            // 2. Only load keys if BOTH files exist (Your PC)
-            if (localPropertiesFile.exists() && keystoreFile.exists()) {
+            // Only load keys if local.properties exists
+            if (localPropertiesFile.exists()) {
                 val properties = Properties()
                 properties.load(FileInputStream(localPropertiesFile))
-                storeFile = keystoreFile
-                storePassword = properties.getProperty("JOTTER_KEYSTORE_PASSWORD")
-                keyAlias = properties.getProperty("JOTTER_KEY_ALIAS")
-                keyPassword = properties.getProperty("JOTTER_KEY_PASSWORD")
+                // READ PATH FROM LOCAL.PROPERTIES
+                val keyPath = properties.getProperty("storeFile")
+                // Only sign if the path was found
+                if (keyPath != null) {
+                    storeFile = file(keyPath)
+                    storePassword = properties.getProperty("JOTTER_KEYSTORE_PASSWORD")
+                    keyAlias = properties.getProperty("JOTTER_KEY_ALIAS")
+                    keyPassword = properties.getProperty("JOTTER_KEY_PASSWORD")
+                }
             }
-            // 3. If files are missing (F-Droid), do nothing.
         }
+    }
+
+    packaging {
+        // Your requested syntax for Native Stripping fix
+        jniLibs.keepDebugSymbols.add("**/*.so")
     }
 
     defaultConfig {
@@ -49,7 +55,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (file("Jotter.jks").exists()) {
+            // Fix: Check if local.properties exists to apply signing
+            if (rootProject.file("local.properties").exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
