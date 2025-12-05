@@ -1,3 +1,0 @@
-Jotter 1.0.0:
-- Initial public release.
-- Minimal notes UI with local storage.

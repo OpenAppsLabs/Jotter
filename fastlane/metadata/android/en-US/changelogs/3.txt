@@ -1,0 +1,26 @@
+⚠️ Important Update: Action Required
+
+Please read this carefully to avoid data loss.
+
+I have globally renamed the application package from `com.openapps.jotter` to `com.openappslabs.jotter`.
+
+🛑 What this means for you
+Because the package name has changed, your phone will treat this update as a completely new app. You cannot simply "update" the existing app over the top of the old one.
+
+🛠 How to Switch to the New Version
+
+Please follow these steps strictly in this order:
+
+1.  BACKUP YOUR DATA (CRITICAL)
+    Open your current (old) version of Jotter. Go to Settings > Backup/Export and save your data file to a safe place on your phone (like your Downloads folder).
+
+2.  Uninstall the Old App
+    Once you have confirmed your backup file is safe, uninstall the old "Jotter" app from your device.
+
+3.  Install the New APK
+    Download and install the latest APK from the assets below.
+
+4.  Restore Your Data
+    Open the new Jotter app. Go to Settings > Restore/Import and select the backup file you created in Step 1.
+
+I apologize for this extra step. This change was necessary for the long-term stability of the project. Thank you for your support!
