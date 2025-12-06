@@ -102,28 +102,23 @@ fun PrivacyPolicyScreen(
             )
 
             PolicySection(
-                title = "2. Information We Collect",
+                title = "2. Information I Collect",
                 content = "Jotter does not collect any personal data. All notes, categories, and preferences are stored locally on your device. No data is shared."
             )
 
             PolicySection(
-                title = "3. Permissions & Internet Usage",
-                content = "Jotter operates completely offline with one exception: it uses Internet access solely to check GitHub for newer versions of the app.\nIf you choose to update the app from within Jotter, it may request the 'Request Install Packages' permission to download and install the update."
-            )
-
-            PolicySection(
-                title = "4. Use of Your Information",
+                title = "3. Use of Your Information",
                 content = "I do not use, share, or process any of your data. Your notes and information remain on your device and are used only for the functionality of the app."
             )
 
             PolicySection(
-                title = "5. Third-Party Services",
+                title = "4. Third-Party Services",
                 content = "Jotter does not use third-party services, including analytics, ads, or data collection tools. Your data stays private and local to your device."
             )
 
             PolicySection(
-                title = "6. Contact Me",
-                content = "If you have any questions or concerns, you can reach out to me via our GitHub."
+                title = "5. Contact Me",
+                content = "If you have any questions or concerns, you can reach out to me via GitHub."
             )
 
             Spacer(modifier = Modifier.height(16.dp))

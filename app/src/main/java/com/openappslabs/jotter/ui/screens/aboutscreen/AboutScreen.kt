@@ -52,11 +52,9 @@ import java.time.Year
 @Composable
 fun AboutScreen(
     onBackClick: () -> Unit,
-    viewModel: AboutScreenViewModel = hiltViewModel()
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    val updateStatus = viewModel.updateStatus
 
     Scaffold(
         topBar = {
@@ -184,24 +182,6 @@ fun AboutScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Update Action
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)),
-                shape = RoundedCornerShape(28.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column {
-                    ActionItem(
-                        icon = Icons.Outlined.SystemUpdate,
-                        label = "Check For Update",
-                        onClick = { viewModel.checkForUpdate() }
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
@@ -210,29 +190,6 @@ fun AboutScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(vertical = 32.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-        }
-
-        // --- ONE DIALOG TO RULE THEM ALL ---
-        if (updateStatus !is UpdateStatus.Idle) {
-            UnifiedUpdateDialog(
-                updateStatus = updateStatus,
-                onDownloadClick = { url ->
-                    viewModel.downloadUpdate(url)
-                },
-                onGithubClick = {
-                    uriHandler.openUri("https://github.com/openappslabs/Jotter/releases/latest")
-                    viewModel.resetState()
-                },
-                onCancelDownload = {
-                    viewModel.cancelDownload()
-                },
-                onDismiss = {
-                    viewModel.resetState()
-                },
-                onInstallClick = {
-                    viewModel.installUpdate()
-                },
             )
         }
     }
