@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.navigation
 
 import androidx.compose.runtime.Composable
@@ -53,8 +69,6 @@ fun AppNavHost(
                 onBackupRestoreClick = { navController.navigate(AppRoutes.BACKUP_RESTORE) },
                 onPrivacyPolicyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onAboutClick = { navController.navigate(AppRoutes.ABOUT) }
-                // Note: onLaunchBiometricPrompt needs to be added here from MainActivity
-                // when implementing app lock.
             )
         }
 
@@ -62,7 +76,6 @@ fun AppNavHost(
             ArchiveScreen(
                 onBackClick = { navController.popBackStack() },
                 onNoteClick = { noteId -> navController.navigate("${AppRoutes.NOTE_DETAIL}/$noteId") }
-                // Note: onRestoreComplete callback needs to be added here.
             )
         }
 
@@ -85,7 +98,6 @@ fun AppNavHost(
             AboutScreen(onBackClick = { navController.popBackStack() })
         }
 
-        // 💡 Consolidated Note Detail Screen:
         composable(
             route = AppRoutes.NOTE_DETAIL_ROUTE_WITH_ARGS,
             arguments = listOf(
@@ -95,13 +107,11 @@ fun AppNavHost(
                 }
             )
         ) {
-            // ✨ FIX: Provide all the newly required navigation callbacks
             NoteDetailScreen(
                 onBackClick = { navController.popBackStack() },
                 onManageCategoryClick = {
                     navController.navigate(AppRoutes.ADD_CATEGORY)
                 },
-                // Mappings for actions that change a note's state and require navigation:
                 onNavigateToArchive = { navController.navigate(AppRoutes.ARCHIVE) },
                 onNavigateToTrash = { navController.navigate(AppRoutes.TRASH) },
                 onNavigateToHome = { navController.navigate(AppRoutes.HOME) }

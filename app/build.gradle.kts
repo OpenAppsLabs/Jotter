@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -16,13 +32,10 @@ android {
     signingConfigs {
         create("release") {
             val localPropertiesFile = rootProject.file("local.properties")
-            // Only load keys if local.properties exists
             if (localPropertiesFile.exists()) {
                 val properties = Properties()
                 properties.load(FileInputStream(localPropertiesFile))
-                // READ PATH FROM LOCAL.PROPERTIES
                 val keyPath = properties.getProperty("storeFile")
-                // Only sign if the path was found
                 if (keyPath != null) {
                     storeFile = file(keyPath)
                     storePassword = properties.getProperty("JOTTER_KEYSTORE_PASSWORD")
@@ -33,9 +46,7 @@ android {
         }
     }
     dependenciesInfo {
-        // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
         includeInApk = false
-        // Disables dependency metadata when building Android App Bundles (for Google Play)
         includeInBundle = false
     }
 
@@ -60,7 +71,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Fix: Check if local.properties exists to apply signing
             if (rootProject.file("local.properties").exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -80,6 +90,7 @@ android {
 }
 
 dependencies {
+    // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -96,24 +107,30 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // Icons
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.reorderable)
 
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Hilt DI
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
+    
+    // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
-
+    
+    // Datastore
     implementation(libs.androidx.datastore.preferences)
 
+    // GSON
     implementation(libs.gson)
 
+    // Biometrics
     implementation(libs.androidx.biometric)
 }

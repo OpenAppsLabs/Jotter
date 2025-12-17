@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.data.repository
 
 import androidx.room.withTransaction
@@ -9,39 +25,29 @@ import com.openappslabs.jotter.data.source.NoteDao
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-/**
- * Concrete implementation of the NotesRepository interface, using the local Room DAO.
- */
 class NotesRepositoryImpl @Inject constructor(
     private val noteDao: NoteDao,
     private val categoryDao: CategoryDao,
     private val database: JotterDatabase // ✨ NEW: Inject Database for Transactions
 ) : NotesRepository {
 
-    // --- Read Operations ---
     override fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
     override fun getArchivedNotes(): Flow<List<Note>> = noteDao.getArchivedNotes()
     override fun getTrashedNotes(): Flow<List<Note>> = noteDao.getTrashedNotes()
 
     override suspend fun getNoteById(noteId: Int): Note? = noteDao.getNoteById(noteId)
 
-    // --- Write/Update Operations ---
     override suspend fun addNote(note: Note): Long {
-        // Automatically updates 'updatedTime' whenever a note is added/saved
         return noteDao.insert(note.copy(updatedTime = System.currentTimeMillis()))
     }
 
     override suspend fun updateNote(note: Note) {
-        // Automatically updates 'updatedTime' whenever a note is updated
         noteDao.update(note.copy(updatedTime = System.currentTimeMillis()))
     }
 
-    // Helper functions for status changes
     override suspend fun archiveNote(note: Note) {
-        // 1. Fetch the full, current note from the database
         val existingNote = noteDao.getNoteById(note.id)
         if (existingNote != null) {
-            // 2. Apply only the status change
             noteDao.update(existingNote.copy(
                 isArchived = true,
                 isTrashed = false,
@@ -83,7 +89,6 @@ class NotesRepositoryImpl @Inject constructor(
         }
     }
 
-    // --- Delete Operations ---
     override suspend fun deleteNote(note: Note) {
         noteDao.delete(note)
     }
@@ -94,8 +99,6 @@ class NotesRepositoryImpl @Inject constructor(
 
     override fun getCategories(): Flow<List<String>> = noteDao.getCategories()
 
-    // --- Backup & Restore Implementation ---
-
     override suspend fun getBackupData(): Pair<List<Note>, List<Category>> {
         val notes = noteDao.getAllNotesSync()
         val categories = categoryDao.getAllCategoriesSync()
@@ -103,20 +106,16 @@ class NotesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restoreBackupData(notes: List<Note>, categories: List<Category>) {
-        // ✨ FIX: Use Transaction to prevent partial restores or data loss on crash
         database.withTransaction {
-            // 1. Wipe existing data
             noteDao.deleteAllNotes()
             categoryDao.deleteAllCategories()
 
-            // 2. Insert backup data
             noteDao.insertAll(notes)
             categoryDao.insertAll(categories)
         }
     }
 
     override suspend fun clearAllDatabaseData() {
-        // These functions were added to your DAOs during the Backup/Restore setup
         noteDao.deleteAllNotes()
         categoryDao.deleteAllCategories()
     }

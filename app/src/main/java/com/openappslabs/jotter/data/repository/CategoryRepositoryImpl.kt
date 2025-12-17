@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.data.repository
 
 import com.openappslabs.jotter.data.model.Category
@@ -7,23 +23,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-/**
- * Concrete implementation of the CategoryRepository interface.
- * Handles category CRUD using CategoryDao and note cleanup using NotesRepository.
- */
 class CategoryRepositoryImpl @Inject constructor(
     private val categoryDao: CategoryDao,
     private val notesRepository: NotesRepository // Used for cleaning up note references
 ) : CategoryRepository {
 
-    // --- Read Operations ---
     override fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
 
-    // --- Write/Delete Operations ---
     override suspend fun insertCategory(name: String) {
         val trimmed = name.trim()
-
-        // ✨ FIX: Validation check placed inside the Repository method as a final safeguard
         if (trimmed.isNotBlank()) {
             val category = Category(name = trimmed)
             categoryDao.insertCategory(category)
@@ -31,26 +39,14 @@ class CategoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteCategoryByName(name: String) {
-        // Delete the Category entity itself
         categoryDao.deleteCategoryByName(name)
-
-        // NOTE: The UI/ViewModel is responsible for calling clearCategoryReferences
-        // to update the related Notes before or after this call.
     }
 
-    // --- Special Cleanup Function ---
     override suspend fun clearCategoryReferences(categoryName: String, notesFlow: Flow<List<Note>>) {
-        // This executes a cleanup transaction: finding all notes with the deleted category
-        // and setting their category field to empty ("").
-
-        // 1. Get the current list of notes once
         val notesToUpdate = notesFlow.first()
-
-        // 2. Filter and update references
         notesToUpdate
             .filter { it.category == categoryName }
             .forEach { note ->
-                // Update the note's category to empty string ("")
                 notesRepository.updateNote(note.copy(category = ""))
             }
     }

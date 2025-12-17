@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.backuprestore
 
 import androidx.lifecycle.ViewModel
@@ -20,39 +36,28 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import javax.inject.Inject
 
-/**
- * UI state for Backup & Restore screen.
- */
 data class BackupRestoreUiState(
     val isExportInProgress: Boolean = false,
     val isImportInProgress: Boolean = false,
     val lastExportSuccess: Boolean? = null,
     val lastImportSuccess: Boolean? = null,
     val errorMessage: String? = null,
-    val hasDataToExport: Boolean = false // ✨ NEW FIELD: Tracks if db has data
+    val hasDataToExport: Boolean = false
 )
 
 @HiltViewModel
 class BackupRestoreScreenViewModel @Inject constructor(
     private val repository: NotesRepository
 ) : ViewModel() {
-
-    // Internal state for loading/error flags
     private val _internalUiState = MutableStateFlow(BackupRestoreUiState())
-
-    // ✨ Combine internal state with database flows to know if data exists in real-time
     val uiState: StateFlow<BackupRestoreUiState> = combine(
         _internalUiState,
-        repository.getAllNotes(),      // Active notes
-        repository.getArchivedNotes(), // Archived notes
-        repository.getCategories()     // Categories
+        repository.getAllNotes(),
+        repository.getArchivedNotes(),
+        repository.getCategories()
     ) { currentUi, notes, archived, categories ->
-
-        // Check if there is ANY data to export
         val hasData = notes.isNotEmpty() || archived.isNotEmpty() || categories.isNotEmpty()
-
         currentUi.copy(hasDataToExport = hasData)
-
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -61,35 +66,23 @@ class BackupRestoreScreenViewModel @Inject constructor(
 
     private val gson = Gson()
 
-    /**
-     * Generates the Backup JSON string.
-     * @param onReady Callback with the JSON string when data is ready to save.
-     * @param onEmpty Callback fired if there is no data to export.
-     */
     fun exportNotes(onReady: (String) -> Unit, onEmpty: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Start Loading
             _internalUiState.update { it.copy(isExportInProgress = true, errorMessage = null, lastExportSuccess = null) }
 
             try {
-                // 2. Fetch Data Snapshot
                 val (notes, categories) = repository.getBackupData()
-
-                // ✨ FIX: Check if data exists before generating JSON
                 if (notes.isEmpty() && categories.isEmpty()) {
                     _internalUiState.update { it.copy(isExportInProgress = false) }
                     withContext(Dispatchers.Main) {
-                        onEmpty() // Notify UI to show "No Data" dialog
+                        onEmpty()
                     }
                     return@launch
                 }
 
                 val backupData = BackupData(notes, categories)
-
-                // 3. Convert to JSON
                 val jsonString = gson.toJson(backupData)
 
-                // 4. Update State & Callback
                 _internalUiState.update { it.copy(isExportInProgress = false, lastExportSuccess = true) }
 
                 withContext(Dispatchers.Main) {
@@ -104,30 +97,18 @@ class BackupRestoreScreenViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * Reads the file stream, parses JSON, and restores to Database.
-     */
     fun importNotes(inputStream: InputStream) {
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Start Loading
             _internalUiState.update { it.copy(isImportInProgress = true, errorMessage = null, lastImportSuccess = null) }
 
             try {
-                // 2. Read & Parse
                 val reader = BufferedReader(InputStreamReader(inputStream))
                 val jsonString = reader.readText()
                 val backupData = gson.fromJson(jsonString, BackupData::class.java)
-
-                // ✨ FIX: Null safety checks for imported data
-                // Gson might return null for missing fields even if Kotlin type is non-nullable
                 val safeNotes = backupData.notes ?: emptyList()
                 val safeCategories = backupData.categories ?: emptyList()
 
-                // 3. Restore to DB
                 repository.restoreBackupData(safeNotes, safeCategories)
-
-                // 4. Success
                 _internalUiState.update { it.copy(isImportInProgress = false, lastImportSuccess = true) }
 
             } catch (e: Exception) {

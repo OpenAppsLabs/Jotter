@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.background
@@ -54,24 +70,15 @@ fun NoteCard(
         Modifier.fillMaxWidth().height(140.dp)
     }
 
-    // For List view, we show "Locked Note" text.
     val displayContent = if (isLocked && !isGridView) "Locked Note" else content
-
     val contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     else MaterialTheme.colorScheme.onSurfaceVariant
-
-    // --- CATEGORY DISPLAY LOGIC ---
     val isCategoryBlank = category.isBlank()
     val categoryText = if (isCategoryBlank) "UNCATEGORIZED" else category.uppercase()
-
-    // Choose appropriate colors for the footer chip
     val chipContainerColor = if (isCategoryBlank) MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
     else MaterialTheme.colorScheme.surfaceContainerHigh
-
     val chipContentColor = if (isCategoryBlank) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
     else MaterialTheme.colorScheme.onSurfaceVariant
-    // --- END CATEGORY DISPLAY LOGIC ---
-
 
     Card(
         modifier = modifier.then(sizeModifier),
@@ -89,8 +96,7 @@ fun NoteCard(
             modifier = Modifier.padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // --- TOP SECTION ---
-            Column(modifier = Modifier.weight(1f)) { // Added weight to push footer down
+            Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,10 +110,7 @@ fun NoteCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
-                    // Icons Block
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Pin always shows top-right if active
                         if (isPinned) {
                             Icon(
                                 imageVector = Icons.Default.PushPin,
@@ -116,13 +119,9 @@ fun NoteCard(
                                 modifier = Modifier.size(16.dp)
                             )
                         }
-
-                        // Spacer only if we have both icons in this row
                         if (isPinned && (isLocked && !isGridView)) {
                             Spacer(modifier = Modifier.width(12.dp))
                         }
-
-                        // Lock only shows top-right in LIST view
                         if (isLocked && !isGridView) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
@@ -136,13 +135,11 @@ fun NoteCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // --- CONTENT SECTION ---
                 if (isLocked && isGridView) {
-                    // ✨ GRID VIEW LOCKED: Centered Large Lock Icon
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 20.dp), // ✨ FIX: Push icon up to balance the Title
+                            .padding(bottom = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -153,7 +150,6 @@ fun NoteCard(
                         )
                     }
                 } else {
-                    // Standard Text (or "Locked Note" for List view)
                     Text(
                         text = displayContent,
                         style = MaterialTheme.typography.bodyMedium,
@@ -165,7 +161,6 @@ fun NoteCard(
                 }
             }
 
-            // --- FOOTER SECTION ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,18 +172,17 @@ fun NoteCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
 
-                // ✨ Category Chip (Shows UNCATEGORIZED if category is blank)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(chipContainerColor) // Use dynamic background color
+                        .background(chipContainerColor)
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = categoryText, // Use the pre-computed text (UNCATEGORIZED or Tag name)
+                        text = categoryText,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = chipContentColor, // Use the dynamic content color
+                        color = chipContentColor,
                         fontSize = 10.sp
                     )
                 }

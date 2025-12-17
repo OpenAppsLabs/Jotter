@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.utils
 
 import android.app.KeyguardManager
@@ -8,26 +24,15 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-
-/**
- * Data class to hold the device's authentication support status.
- * Note: It's not possible to distinguish between PIN and Pattern with public APIs,
- * so they are tied to the presence of any secure device credential.
- */
 data class AuthSupport(
     val hasFingerprint: Boolean,
-    val hasDeviceCredential: Boolean // Covers PIN, Pattern, or Password
+    val hasDeviceCredential: Boolean
 )
 
 object BiometricAuthUtil {
-
-    /**
-     * Checks the device for available and enabled authentication methods.
-     */
     fun getAuthenticationSupport(context: Context): AuthSupport {
         val biometricManager = BiometricManager.from(context)
         val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-
         val hasBiometrics = biometricManager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
         val hasDeviceCredential = keyguardManager.isDeviceSecure
 
@@ -39,7 +44,6 @@ object BiometricAuthUtil {
 
     fun isBiometricAvailable(context: Context): Boolean {
         val biometricManager = BiometricManager.from(context)
-        // Allow Biometric OR Device Credential (PIN/Pattern)
         val authenticators = BIOMETRIC_STRONG or DEVICE_CREDENTIAL
         return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
     }
@@ -61,7 +65,6 @@ object BiometricAuthUtil {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    // Don't propagate cancellation errors
                     if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON && errorCode != BiometricPrompt.ERROR_USER_CANCELED) {
                         onError(errString.toString())
                     }
@@ -72,7 +75,6 @@ object BiometricAuthUtil {
             .setTitle(title)
             .setSubtitle(subtitle)
             .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-            // Note: setNegativeButtonText is NOT allowed when DEVICE_CREDENTIAL is used
 
         biometricPrompt.authenticate(promptInfoBuilder.build())
     }

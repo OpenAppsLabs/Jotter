@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.clickable
@@ -32,20 +48,17 @@ import androidx.compose.ui.window.Dialog
 fun NoteActionDialog(
     onDismiss: () -> Unit,
     onArchiveConfirm: () -> Unit,
-    onDeleteConfirm: () -> Unit // Note: Delete means move to trash in active screen context
+    onDeleteConfirm: () -> Unit
 ) {
     val outerRadius = 25.dp
     val zeroPadding = PaddingValues(0.dp)
-
-    // Helper shapes for the button stack
     val topButtonShape = RoundedCornerShape(
         topStart    = outerRadius,
         topEnd      = outerRadius,
         bottomStart = 4.dp,
         bottomEnd   = 4.dp
     )
-    // NOTE: The 'middleButtonShape' is now the effective bottom button, so its shape must change.
-    val bottomButtonShape = RoundedCornerShape( // Re-purposing this variable name for the final button
+    val bottomButtonShape = RoundedCornerShape(
         topStart    = 4.dp,
         topEnd      = 4.dp,
         bottomStart = outerRadius,
@@ -64,7 +77,6 @@ fun NoteActionDialog(
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
 
-                // ✨ NEW TOP ROW: Title and Close Icon
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -78,7 +90,6 @@ fun NoteActionDialog(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    // Close Icon button
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Dismiss",
@@ -90,7 +101,6 @@ fun NoteActionDialog(
                     )
                 }
 
-                // Subtitle/Instructions
                 Text(
                     text = "Choose how you want to move this note from your main list.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -100,21 +110,19 @@ fun NoteActionDialog(
                 )
             }
 
-            // --- BUTTONS SECTION ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp), // Adjust bottom padding now that cancel button is gone
+                    .padding(bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 1. MOVE TO TRASH BUTTON (Destructive action - TOP shape)
                 Button(
                     onClick        = onDeleteConfirm,
                     modifier       = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape          = topButtonShape, // Uses the TOP shape
+                    shape          = topButtonShape,
                     colors         = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor   = MaterialTheme.colorScheme.onErrorContainer
@@ -130,13 +138,12 @@ fun NoteActionDialog(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // 2. ARCHIVE BUTTON (Positive action for removal - BOTTOM shape)
                 Button(
                     onClick        = onArchiveConfirm,
                     modifier       = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape          = bottomButtonShape, // Uses the BOTTOM shape
+                    shape          = bottomButtonShape,
                     colors         = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor   = MaterialTheme.colorScheme.onPrimaryContainer
@@ -149,7 +156,6 @@ fun NoteActionDialog(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-                // Removed Spacer and Cancel Button block completely
             }
         }
     }

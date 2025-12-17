@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.archivescreen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -125,7 +141,6 @@ fun ArchiveScreen(
                 }
             } else {
                 LazyVerticalStaggeredGrid(
-                    // ✨ FIX: Use the global view state from the ViewModel
                     columns = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
@@ -143,7 +158,6 @@ fun ArchiveScreen(
                             category = note.category,
                             isPinned = note.isPinned,
                             isLocked = note.isLocked,
-                            // ✨ FIX: Use the global view state for the card layout
                             isGridView = uiState.isGridView,
                             onClick = { viewModel.onNoteClicked(note.id); onNoteClick(note.id) }
                         )

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.homescreen
 
 import android.widget.Toast
@@ -55,9 +71,6 @@ fun HomeScreen(
     val listState = rememberLazyStaggeredGridState()
     val context = LocalContext.current
 
-    val dateFormatter = remember { SimpleDateFormat("dd MMM", Locale.getDefault()) }
-    
-    // Scroll to top smoothly whenever the selected category changes
     LaunchedEffect(uiState.selectedCategory) {
         listState.animateScrollToItem(0)
     }
@@ -109,8 +122,6 @@ fun HomeScreen(
                 .padding(innerPadding)
         ) {
             CategoryBar(
-                // ✨ FIX: Pass the full, UNFILTERED list of categories from the ViewModel
-                // Note: The ViewModel must expose a property called `allAvailableCategories`
                 categories          = uiState.allAvailableCategories,
                 selectedCategory    = uiState.selectedCategory,
                 onCategorySelect    = { viewModel.selectCategory(it) },
@@ -127,9 +138,9 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalItemSpacing  = 12.dp
             ) {
-                items(uiState.allNotes, key = { it.id }) { note -> // Now using VM's filtered list directly
-                    val dateStr = remember(note.createdTime) {
-                        dateFormatter.format(Date(note.createdTime))
+                items(uiState.allNotes, key = { it.id }) { note ->
+                    val dateStr = remember(note.createdTime, uiState.dateFormat) {
+                        SimpleDateFormat(uiState.dateFormat, Locale.getDefault()).format(Date(note.createdTime))
                     }
                     NoteCard(
                         title     = note.title,
@@ -157,7 +168,6 @@ fun HomeScreen(
                                         }
                                     )
                                 } else {
-                                    // Fallback if activity context not available (shouldn't happen normally)
                                     onNoteClick(note.id)
                                 }
                             } else {

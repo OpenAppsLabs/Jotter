@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.animation.core.animateDpAsState
@@ -37,10 +53,7 @@ fun EditViewButton(
     val activeContentColor = MaterialTheme.colorScheme.primary
     val inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     val activeContainerColor = MaterialTheme.colorScheme.secondaryContainer
-
     val iconButtonSize = 48.dp
-
-    // Logic Flipped: If isEditing (Left side), offset is 0. If View mode (Right side), offset is size.
     val offsetX by animateDpAsState(
         targetValue = if (isEditing) 0.dp else iconButtonSize,
         animationSpec = spring(
@@ -57,7 +70,6 @@ fun EditViewButton(
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
-        // 1. The Sliding Indicator (The animated background)
         Box(
             modifier = Modifier
                 .offset(x = offsetX)
@@ -66,9 +78,7 @@ fun EditViewButton(
                 .background(activeContainerColor)
         )
 
-        // 2. The Buttons/Icons laid out in a Row on top of the indicator
         Row(Modifier.fillMaxSize()) {
-            // Edit Button Area (Left) - Swapped to here
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -89,7 +99,6 @@ fun EditViewButton(
                 )
             }
 
-            // View Button Area (Right) - Swapped to here
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -99,7 +108,7 @@ fun EditViewButton(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Button,
-                        onClick = { if (isEditing) onToggle() } // Click to switch to View
+                        onClick = { if (isEditing) onToggle() }
                     ),
                 contentAlignment = Alignment.Center
             ) {

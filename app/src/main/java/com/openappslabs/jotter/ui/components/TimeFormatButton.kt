@@ -30,11 +30,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ViewList
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -42,11 +39,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun GridListButton(
-    isGridView: Boolean, // Renamed parameter to match usage
+fun TimeFormatButton(
+    is24Hour: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,7 +53,7 @@ fun GridListButton(
     val activeContainerColor = MaterialTheme.colorScheme.secondaryContainer
     val iconButtonSize = 48.dp
     val offsetX by animateDpAsState(
-        targetValue = if (!isGridView) 0.dp else iconButtonSize,
+        targetValue = if (is24Hour) iconButtonSize else 0.dp,
         animationSpec = spring(
             dampingRatio = 0.8f,
             stiffness = 300f
@@ -77,7 +75,6 @@ fun GridListButton(
                 .clip(CircleShape)
                 .background(activeContainerColor)
         )
-
         Row(Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -88,14 +85,15 @@ fun GridListButton(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Button,
-                        onClick = { if (isGridView) onToggle() } // Click to switch to List
+                        onClick = { if (is24Hour) onToggle() }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ViewList,
-                    contentDescription = "List View",
-                    tint = if (!isGridView) activeContentColor else inactiveContentColor
+                Text(
+                    text = "12h",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (!is24Hour) activeContentColor else inactiveContentColor
                 )
             }
 
@@ -108,14 +106,15 @@ fun GridListButton(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Button,
-                        onClick = { if (!isGridView) onToggle() } // Click to switch to Grid
+                        onClick = { if (!is24Hour) onToggle() }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.GridView,
-                    contentDescription = "Grid View",
-                    tint = if (isGridView) activeContentColor else inactiveContentColor
+                Text(
+                    text = "24h",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (is24Hour) activeContentColor else inactiveContentColor
                 )
             }
         }

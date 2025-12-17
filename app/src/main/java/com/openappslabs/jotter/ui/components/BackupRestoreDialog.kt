@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.layout.Column
@@ -42,7 +58,6 @@ fun BackupRestoreDialog(
     onDismiss: () -> Unit,
     errorMessage: String? = null
 ) {
-    // 1. Determine Content based on Type
     val (title, message, icon, iconColor) = when (type) {
         BackupDialogType.NO_DATA_TO_EXPORT -> Quadruple(
             "No Data Found",
@@ -83,13 +98,11 @@ fun BackupRestoreDialog(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
         ) {
-            // --- CONTENT SECTION ---
             Column(
                 modifier = Modifier
                     .padding(start = 24.dp, end = 24.dp, top = 24.dp),
                 horizontalAlignment = Alignment.Start // Changed to Start for consistency
             ) {
-                // ✨ OPTION 1: Header Style (Icon + Title in Row)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -114,7 +127,6 @@ fun BackupRestoreDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Message (Left Aligned)
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
@@ -123,14 +135,12 @@ fun BackupRestoreDialog(
                 )
             }
 
-            // --- BUTTON SECTION ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally // Button remains Centered
             ) {
-                // Single OK Button
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -154,5 +164,4 @@ fun BackupRestoreDialog(
     }
 }
 
-// Helper data class
 data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

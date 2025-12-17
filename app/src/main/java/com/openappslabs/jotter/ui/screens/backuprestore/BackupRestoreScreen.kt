@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.backuprestore
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -61,16 +77,11 @@ fun BackupRestoreScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
-    // Local state to control the dialog visibility and type
     var activeDialog by remember { mutableStateOf<BackupDialogType?>(null) }
-
-    // 1. EXPORT LAUNCHER: Opens "Save as" dialog
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         uri?.let { safeUri ->
-            // FIX: Call ViewModel with both required parameters
             viewModel.exportNotes(
                 onReady = { jsonString ->
                     try {
@@ -90,7 +101,6 @@ fun BackupRestoreScreen(
         }
     }
 
-    // 2. IMPORT LAUNCHER: Opens file picker
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -99,7 +109,6 @@ fun BackupRestoreScreen(
                 val inputStream = context.contentResolver.openInputStream(safeUri)
                 if (inputStream != null) {
                     viewModel.importNotes(inputStream)
-                    // Success dialog will be triggered by UI state observation below
                 }
             } catch (e: Exception) {
                 activeDialog = BackupDialogType.ERROR
@@ -107,7 +116,6 @@ fun BackupRestoreScreen(
         }
     }
 
-    // Watch UI State for Import Success/Failure to trigger Dialog
     if (uiState.lastImportSuccess == true && activeDialog == null) {
         activeDialog = BackupDialogType.IMPORT_SUCCESS
         viewModel.clearError() // Reset state after triggering dialog
@@ -161,7 +169,6 @@ fun BackupRestoreScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // Info box
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -195,7 +202,6 @@ fun BackupRestoreScreen(
                     title = "Export Notes",
                     subtitle = "Save all notes and tags to a local file",
                     onClick = {
-                        // FIX: Check if data exists BEFORE launching the picker to avoid creating empty files
                         if (uiState.hasDataToExport) {
                             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
                             exportLauncher.launch("jotter_backup_$timeStamp.json")
@@ -213,7 +219,6 @@ fun BackupRestoreScreen(
                 )
             }
 
-            // Status messages
             if (uiState.isExportInProgress || uiState.isImportInProgress) {
                 Text(
                     text = "Processing...",
@@ -228,7 +233,6 @@ fun BackupRestoreScreen(
         }
     }
 
-    // Render the Dialog if active
     activeDialog?.let { type ->
         BackupRestoreDialog(
             type = type,
@@ -241,7 +245,6 @@ fun BackupRestoreScreen(
     }
 }
 
-// ... (Helper Composables remain the same)
 @Composable
 fun TinyGap() {
     Column(

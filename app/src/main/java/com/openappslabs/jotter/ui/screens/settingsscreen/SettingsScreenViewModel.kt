@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.settingsscreen
 
 import androidx.lifecycle.ViewModel
@@ -17,11 +33,8 @@ class SettingsScreenViewModel @Inject constructor(
     private val repository: UserPreferencesRepository,
     private val notesRepository: NotesRepository
 ) : ViewModel() {
-
-    // 1. Convert Repository Flow -> UI State
     val uiState: StateFlow<UiState> = repository.userPreferencesFlow
         .map { prefs ->
-            // When we receive data from the repository, loading is done (isLoading = false)
             UiState(
                 isLoading = false,
                 isDarkMode = prefs.isDarkMode,
@@ -32,13 +45,14 @@ class SettingsScreenViewModel @Inject constructor(
                 isBiometricEnabled = prefs.isBiometricEnabled,
                 isSecureMode = prefs.isSecureMode,
                 showAddCategoryButton = prefs.showAddCategoryButton,
-                isGridView = prefs.isGridView
+                isGridView = prefs.isGridView,
+                is24HourFormat = prefs.is24HourFormat,
+                dateFormat = prefs.dateFormat
             )
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            // Start with isLoading = true to prevent UI flicker
             initialValue = UiState(isLoading = true)
         )
 
@@ -52,10 +66,10 @@ class SettingsScreenViewModel @Inject constructor(
         val isBiometricEnabled: Boolean = false,
         val isSecureMode: Boolean = false,
         val showAddCategoryButton: Boolean = true,
-        val isGridView: Boolean = false
+        val isGridView: Boolean = false,
+        val is24HourFormat: Boolean = false,
+        val dateFormat: String = "dd MMM"
     )
-
-    // 2. User Actions -> Call Repository
 
     fun updateShowAddCategoryButton(show: Boolean) {
         viewModelScope.launch { repository.setShowAddCategoryButton(show) }
@@ -85,7 +99,7 @@ class SettingsScreenViewModel @Inject constructor(
         viewModelScope.launch { 
             repository.setBiometric(isEnabled) 
             if (!isEnabled) {
-                notesRepository.unlockAllNotes() // ✨ Remove lock from all notes when disabling
+                notesRepository.unlockAllNotes()
             }
         }
     }
@@ -96,15 +110,20 @@ class SettingsScreenViewModel @Inject constructor(
 
     fun clearAllData() {
         viewModelScope.launch {
-            // 1. Wipe the Database (Notes & Categories)
             notesRepository.clearAllDatabaseData()
-
-            // 2. Reset Preferences (keeping the Add Button toggle)
             repository.clearAllData()
         }
     }
 
     fun updateGridView(isGrid: Boolean) {
         viewModelScope.launch { repository.setGridView(isGrid) }
+    }
+
+    fun updateTimeFormat(is24Hour: Boolean) {
+        viewModelScope.launch { repository.setTimeFormat(is24Hour) }
+    }
+
+    fun updateDateFormat(format: String) {
+        viewModelScope.launch { repository.setDateFormat(format) }
     }
 }

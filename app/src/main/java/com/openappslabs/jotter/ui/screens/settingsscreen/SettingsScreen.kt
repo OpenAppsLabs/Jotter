@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.settingsscreen
 
 import androidx.compose.animation.AnimatedVisibility
@@ -45,6 +61,8 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -74,6 +92,8 @@ import com.openappslabs.jotter.ui.components.ClearAllDataDialog
 import com.openappslabs.jotter.ui.components.DisableLockWarningDialog
 import com.openappslabs.jotter.ui.components.EditViewButton
 import com.openappslabs.jotter.ui.components.GridListButton
+import com.openappslabs.jotter.ui.components.TimeFormatButton
+import com.openappslabs.jotter.ui.components.DateFormatButton
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 import com.openappslabs.jotter.utils.AuthSupport
 import com.openappslabs.jotter.utils.BiometricAuthUtil
@@ -148,17 +168,15 @@ fun SettingsScreen(
             )
             Scaffold(
                 containerColor = Color.Transparent,
-                modifier = Modifier.fillMaxSize().padding(top = 0.dp) // Explicitly remove top padding for Scaffold
+                modifier = Modifier.fillMaxSize().padding(top = 0.dp)
             ) { innerPadding ->
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = innerPadding.calculateBottomPadding()), // Apply only bottom padding from innerPadding
+                        .padding(bottom = innerPadding.calculateBottomPadding()),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-
-                    // --- Group 1: Appearance ---
                     item {
                         SettingsGroup(title = "Appearance") {
                             SettingsItemSwitch(
@@ -207,10 +225,31 @@ fun SettingsScreen(
                                     viewModel.updateGridView(!uiState.isGridView)
                                 }
                             )
+
+                            TinyGap()
+
+                            SettingsItemTimeFormat(
+                                icon = Icons.Outlined.Schedule,
+                                title = "Default Time Format",
+                                subtitle = if (uiState.is24HourFormat) "24 Hour Clock" else "12 Hour (AM/PM)",
+                                is24Hour = uiState.is24HourFormat,
+                                onToggle = { viewModel.updateTimeFormat(it) }
+                            )
+
+                            TinyGap()
+
+                            SettingsItemDateFormat(
+                                icon = Icons.Outlined.CalendarMonth,
+                                title = "Date Format",
+                                subtitle = "Change how dates appear",
+                                currentFormat = uiState.dateFormat,
+                                onFormatSelected = { newFormat ->
+                                    viewModel.updateDateFormat(newFormat)
+                                }
+                            )
                         }
                     }
 
-                    // --- Group 2: General & Navigation ---
                     item {
                         SettingsGroup(title = "General & Navigation") {
 
@@ -257,7 +296,6 @@ fun SettingsScreen(
                         }
                     }
 
-                    // --- Group 3: Security ---
                     item {
                         SettingsGroup(title = "Security") {
                             val authSupport = remember(context) {
@@ -276,13 +314,11 @@ fun SettingsScreen(
                                         title = "Note Lock",
                                         subtitle = "Require authentication to open",
                                         checked = uiState.isBiometricEnabled,
-                                        authSupport = authSupport, // ✨ PASSED AuthSupport
+                                        authSupport = authSupport,
                                         onCheckedChange = { isEnabled ->
                                             if (isEnabled) {
-                                                // Enabling: Just update toggle
                                                 viewModel.updateBiometricEnabled(true)
                                             } else {
-                                                // Disabling: Require verification
                                                 val activity = context as? FragmentActivity
                                                 if (activity != null) {
                                                     BiometricAuthUtil.authenticate(
@@ -290,7 +326,6 @@ fun SettingsScreen(
                                                         title = "Confirm Identity",
                                                         subtitle = "Authenticate to disable Note Lock",
                                                         onSuccess = {
-                                                            // Instead of disabling immediately, show warning dialog
                                                             showDisableLockWarningDialog = true
                                                         },
                                                         onError = { }
@@ -313,7 +348,6 @@ fun SettingsScreen(
                         }
                     }
 
-                    // --- Group 4: Data Management & Reset ---
                     item {
                         SettingsGroup(title = "Data Management") {
                             SettingsItemArrow(
@@ -334,7 +368,6 @@ fun SettingsScreen(
                         }
                     }
 
-                    // --- Group 5: About ---
                     item {
                         SettingsGroup(title = "About") {
                             SettingsItemArrow(
@@ -382,8 +415,6 @@ fun SettingsScreen(
         }
     }
 }
-
-// --- Helper Composables ---
 
 @Composable
 fun TinyGap() {
@@ -494,10 +525,8 @@ fun SettingsItemNoteLock(
     onCheckedChange: (Boolean) -> Unit
 ) {
     val haptics = rememberJotterHaptics()
-
-    // Determine which icon to show
     val icon = if (checked) {
-        if (authSupport.hasFingerprint) Icons.Default.Fingerprint else Icons.Default.Lock // Fallback to Lock if no FP (e.g. only PIN)
+        if (authSupport.hasFingerprint) Icons.Default.Fingerprint else Icons.Default.Lock
     } else {
         Icons.Default.Lock
     }
@@ -507,7 +536,6 @@ fun SettingsItemNoteLock(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        // Main Toggle Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -515,7 +543,7 @@ fun SettingsItemNoteLock(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon, // ✨ DYNAMIC ICON
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
@@ -722,5 +750,102 @@ fun SettingsItemArrow(
                 modifier = Modifier.size(24.dp)
             )
         }
+    }
+}
+
+@Composable
+fun SettingsItemTimeFormat(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    is24Hour: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val haptics = rememberJotterHaptics()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(24.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        TimeFormatButton(
+            is24Hour = is24Hour,
+            onToggle = {
+                haptics.tick()
+                onToggle(!is24Hour)
+            }
+        )
+    }
+}
+
+@Composable
+fun SettingsItemDateFormat(
+    icon: ImageVector,
+    title: String,
+    currentFormat: String,
+    onFormatSelected: (String) -> Unit,
+    subtitle: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(24.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        DateFormatButton(
+            currentFormat = currentFormat,
+            onFormatSelected = onFormatSelected
+        )
     }
 }

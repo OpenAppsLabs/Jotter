@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.addcategoryscreen
 
 import androidx.activity.compose.BackHandler
@@ -60,8 +76,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-// NOTE: All reorderable imports have been removed.
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCategoryScreen(
@@ -73,24 +87,18 @@ fun AddCategoryScreen(
     val density = LocalDensity.current
     val isImeVisible = WindowInsets.ime.getBottom(density) > 0
 
-    // Clear focus when IME is dismissed (e.g. via keyboard down button)
     LaunchedEffect(isImeVisible) {
         if (!isImeVisible) {
             focusManager.clearFocus()
         }
     }
 
-    // Intercept back press to clear focus immediately
     BackHandler(enabled = isImeVisible) {
         focusManager.clearFocus()
     }
 
-    // Observe categories from ViewModel
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val maxCharLimit = 15
-
-    // NOTE: LazyGridState and ReorderableState removed.
-
     val transparentColors = TextFieldDefaults.colors(
         focusedContainerColor    = Color.Transparent,
         unfocusedContainerColor  = Color.Transparent,
@@ -231,7 +239,7 @@ fun AddCategoryScreen(
 
             item(span = StaggeredGridItemSpan.FullLine) {
                 Text(
-                    text         = "EXISTING TAGS", // Removed "Alphabetically Sorted"
+                    text         = "EXISTING TAGS",
                     style        = MaterialTheme.typography.labelMedium,
                     fontWeight   = FontWeight.Bold,
                     color        = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -240,7 +248,6 @@ fun AddCategoryScreen(
                 )
             }
 
-            // CategoryChip rendering is now simplified
             items(categories, key = { it }) { category ->
                 CategoryChip(
                     modifier   = Modifier.animateItem(
@@ -266,7 +273,6 @@ fun CategoryChip(
     text       : String,
     elevation  : androidx.compose.ui.unit.Dp = 0.dp,
     onDelete   : () -> Unit,
-    // Removed unused parameters
 ) {
     Surface(
         color         = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -281,13 +287,12 @@ fun CategoryChip(
             verticalAlignment = Alignment.CenterVertically,
             modifier          = Modifier
                 .fillMaxWidth()
-                .padding(start = 12.dp) // ✨ NEW: Add general starting padding here
+                .padding(start = 12.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier          = Modifier.weight(1f)
             ) {
-                // REMOVED: Fixed width Box/Spacer for the old Reorder Index
 
                 Text(
                     text      = text,

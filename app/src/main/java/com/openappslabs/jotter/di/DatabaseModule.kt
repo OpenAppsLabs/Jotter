@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.di
 
 import android.content.Context
@@ -21,15 +37,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class DatabaseModule {
 
-    // --- BINDINGS (Interface to Implementation) ---
-    // Binds the Notes Repository Interface
     @Binds
     @Singleton
     abstract fun bindNotesRepository(
         notesRepositoryImpl: NotesRepositoryImpl
     ): NotesRepository
 
-    // ✨ NEW BINDING: Binds the Category Repository Interface
     @Binds
     @Singleton
     abstract fun bindCategoryRepository(
@@ -38,9 +51,6 @@ abstract class DatabaseModule {
 
 
     companion object {
-        // --- PROVIDERS (Concrete Objects) ---
-
-        // Provides the main database instance (Version 2)
         @Provides
         @Singleton
         fun provideDatabase(@ApplicationContext context: Context): JotterDatabase {
@@ -49,18 +59,15 @@ abstract class DatabaseModule {
                 JotterDatabase::class.java,
                 "jotter_db" // Database file name
             )
-                // ✨ FIX: Allows Room to destroy the version 1 database and create version 2
                 .fallbackToDestructiveMigration()
                 .build()
         }
 
-        // Provides the DAO for Notes (Existing)
         @Provides
         fun provideNoteDao(database: JotterDatabase): NoteDao {
             return database.noteDao()
         }
 
-        // ✨ NEW PROVIDER: Provides the DAO for Categories
         @Provides
         fun provideCategoryDao(database: JotterDatabase): CategoryDao {
             return database.categoryDao()

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.trashscreen
 
 import androidx.lifecycle.ViewModel
@@ -20,12 +36,8 @@ class TrashScreenViewModel @Inject constructor(
     private val notesRepository: NotesRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-
-    // Internal state for dialogs
     private val _showEmptyTrashDialog = MutableStateFlow(false)
     private val _showRestoreAllDialog = MutableStateFlow(false)
-
-    // Combine Notes Flow from Room + User Prefs Flow + Dialog States
     val uiState: StateFlow<UiState> = combine(
         notesRepository.getTrashedNotes(),
         userPreferencesRepository.userPreferencesFlow,
@@ -51,8 +63,6 @@ class TrashScreenViewModel @Inject constructor(
         val showRestoreAllDialog: Boolean = false
     )
 
-    // --- Empty Trash Actions ---
-
     fun onEmptyTrashClicked() {
         _showEmptyTrashDialog.value = true
     }
@@ -68,20 +78,15 @@ class TrashScreenViewModel @Inject constructor(
         _showEmptyTrashDialog.value = false
     }
 
-    // --- Restore All Actions ---
-
     fun onRestoreAllClicked() {
         _showRestoreAllDialog.value = true
     }
 
     fun confirmRestoreAll() {
         viewModelScope.launch {
-            // ✨ FIX: Use .first() to synchronously get the current List<Note> snapshot from the Flow
             val trashedNotes = notesRepository.getTrashedNotes().first()
-
-            // Loop through all trashed notes and restore them
             trashedNotes.forEach { note ->
-                notesRepository.restoreNote(note) // This is now correctly inside the launch coroutine
+                notesRepository.restoreNote(note)
             }
             _showRestoreAllDialog.value = false
         }
@@ -92,6 +97,5 @@ class TrashScreenViewModel @Inject constructor(
     }
 
     fun onNoteClicked(noteId: Int) {
-        // handle note click (e.g., navigation)
     }
 }

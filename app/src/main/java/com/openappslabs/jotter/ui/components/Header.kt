@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.layout.Box
@@ -36,23 +52,16 @@ import androidx.compose.ui.unit.dp
 fun Header(
     title: String,
     modifier: Modifier = Modifier,
-    // Optional: Only used for Home Screen
     isGridView: Boolean = false,
     onToggleView: (() -> Unit)? = null,
     onSettingsClick: (() -> Unit)? = null,
-    // Optional: Only used for Detail Screens
     onBackClick: (() -> Unit)? = null,
-    // Save Action
     onSaveClick: (() -> Unit)? = null,
     isSaveEnabled: Boolean = false,
-    // Delete Action
     onDeleteClick: (() -> Unit)? = null,
-    // Restore/Unarchive Action
     onRestoreClick: (() -> Unit)? = null,
-    // Edit/View Toggle
     isEditing: Boolean = false,
     onToggleEditView: (() -> Unit)? = null,
-    // Dynamic icon for Save slot
     onActionIcon: ImageVector = Icons.Filled.Done
 ) {
     val colors = TopAppBarDefaults.topAppBarColors(
@@ -62,12 +71,10 @@ fun Header(
     )
 
     if (onBackClick != null) {
-        // --- DETAIL SCREEN MODE ---
         CenterAlignedTopAppBar(
             modifier = modifier,
             title = {
                 if (onToggleEditView != null) {
-                    // Placeholder for EditViewButton
                 } else {
                     Text(
                         text = title,
@@ -84,7 +91,6 @@ fun Header(
                     modifier = Modifier.padding(start = 12.dp).size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        // Show X if in Edit Mode OR if there are Unsaved Changes
                         val showCloseIcon = isEditing || isSaveEnabled
 
                         Icon(
@@ -97,14 +103,11 @@ fun Header(
                 }
             },
             actions = {
-                // Priority: Restore > Delete > Save/Done
                 if (onRestoreClick != null) {
-                    // RESTORE BUTTON
                     Surface(
                         onClick = onRestoreClick,
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
-                        // ✨ FIXED: Removed enabled = isSaveEnabled so the button is always active when visible
                         modifier = Modifier.padding(end = 12.dp).size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -117,7 +120,6 @@ fun Header(
                         }
                     }
                 } else if (onDeleteClick != null) {
-                    // Existing Delete Logic
                     Surface(
                         onClick = onDeleteClick,
                         shape = CircleShape,
@@ -134,7 +136,6 @@ fun Header(
                         }
                     }
                 } else if (onSaveClick != null) {
-                    // Existing Save Logic (Uses dynamic icon if provided)
                     Surface(
                         onClick = onSaveClick,
                         shape = CircleShape,
@@ -157,7 +158,6 @@ fun Header(
             colors = colors
         )
     } else {
-        // --- HOME SCREEN MODE ---
         TopAppBar(
             modifier = modifier,
             title = {

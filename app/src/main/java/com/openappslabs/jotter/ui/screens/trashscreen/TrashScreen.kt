@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.trashscreen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -55,8 +71,8 @@ fun TrashScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val trashedNotes = uiState.trashedNotes
-    val showEmptyTrashDialog = uiState.showEmptyTrashDialog // Correctly controls FAB dialog
-    val showRestoreDialog = uiState.showRestoreAllDialog // ✨ FIX 1: Extract new state
+    val showEmptyTrashDialog = uiState.showEmptyTrashDialog
+    val showRestoreDialog = uiState.showRestoreAllDialog
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
     Scaffold(
@@ -88,7 +104,6 @@ fun TrashScreen(
                 },
                 actions = {
                     if (trashedNotes.isNotEmpty()) {
-                        // Restore All Button
                         Surface(
                             onClick = { viewModel.onRestoreAllClicked() },
                             shape = CircleShape,
@@ -172,7 +187,6 @@ fun TrashScreen(
             }
         }
 
-        // Display Empty Trash Dialog
         if (showEmptyTrashDialog) {
             EmptyTrashDialog(
                 onDismiss = { viewModel.dismissEmptyTrashDialog() },
@@ -180,7 +194,6 @@ fun TrashScreen(
             )
         }
 
-        // ✨ NEW DIALOG: Display Restore All Dialog
         if (showRestoreDialog) {
             RestoreAllDialog(
                 noteCount = trashedNotes.size,

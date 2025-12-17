@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.archivescreen
 
 import androidx.lifecycle.ViewModel
@@ -20,23 +36,20 @@ class ArchiveScreenViewModel @Inject constructor(
     private val notesRepository: NotesRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-
-    // Internal state for dialogs
     private val _showRestoreAllDialog = MutableStateFlow(false)
-    private val _showBulkActionDialog = MutableStateFlow(false) // ✨ NEW STATE for Bulk Action Dialog
+    private val _showBulkActionDialog = MutableStateFlow(false)
 
-    // Combine Notes Flow from Room + User Prefs Flow + Dialog States
     val uiState: StateFlow<UiState> = combine(
         notesRepository.getArchivedNotes(),
         userPreferencesRepository.userPreferencesFlow,
         _showRestoreAllDialog,
-        _showBulkActionDialog // ✨ Include new dialog state
+        _showBulkActionDialog
     ) { notes, prefs, showRestore, showBulk ->
         UiState(
             archivedNotes = notes,
             isGridView = prefs.isGridView,
             showRestoreAllDialog = showRestore,
-            showBulkActionDialog = showBulk // ✨ Expose new dialog state
+            showBulkActionDialog = showBulk
         )
     }.stateIn(
         scope = viewModelScope,
@@ -48,10 +61,8 @@ class ArchiveScreenViewModel @Inject constructor(
         val archivedNotes: List<Note> = emptyList(),
         val isGridView: Boolean = true,
         val showRestoreAllDialog: Boolean = false,
-        val showBulkActionDialog: Boolean = false // ✨ ADDED to UiState
+        val showBulkActionDialog: Boolean = false
     )
-
-    // --- Restore All Actions ---
 
     fun onRestoreAllClicked() {
         _showRestoreAllDialog.value = true
@@ -71,29 +82,24 @@ class ArchiveScreenViewModel @Inject constructor(
         _showRestoreAllDialog.value = false
     }
 
-    // --- Bulk Action Menu Actions (Triggered by MoreVert/Actions button) ---
-
-    fun onBulkActionClicked() { // ✨ NEW ACTION: Trigger the options dialog
+    fun onBulkActionClicked() {
         _showBulkActionDialog.value = true
     }
 
-    fun dismissBulkActionDialog() { // ✨ NEW ACTION
+    fun dismissBulkActionDialog() {
         _showBulkActionDialog.value = false
     }
 
-    fun confirmMoveAllToTrash() { // ✨ NEW ACTION: Moves all archived notes to trash
+    fun confirmMoveAllToTrash() {
         viewModelScope.launch {
             val archivedNotes = notesRepository.getArchivedNotes().first()
-
-            // Loop through all archived notes and move them to trash
             archivedNotes.forEach { note ->
-                notesRepository.trashNote(note) // Uses existing status update logic
+                notesRepository.trashNote(note)
             }
             _showBulkActionDialog.value = false
         }
     }
 
     fun onNoteClicked(noteId: Int) {
-        // handle note click (e.g., navigation)
     }
 }

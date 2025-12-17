@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.notedetailscreen
 
 import androidx.activity.compose.BackHandler
@@ -97,32 +113,19 @@ fun NoteDetailScreen(
     val haptics = rememberJotterHaptics()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-
-    // 1. VIEWMODEL STATE
     val uiState by viewModel.uiState.collectAsState()
     val userPrefs by viewModel.userPreferences.collectAsState()
-
-    // Dialog & Local UI State
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
     var showRestoreNoteDialog by remember { mutableStateOf(false) }
     var pendingDiscard by remember { mutableStateOf(false) }
-
-    // Controls visibility of the combined Archive/Trash dialog
     var showNoteActionDialog by remember { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
-
-    // Helper for categories (FIXED: Now observing live database data)
     val availableCategories by viewModel.availableCategories.collectAsState()
-
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-
-    // 2. VIEW MODE LOGIC
-    // We default to Edit mode if it's a new note (not persisted), otherwise View mode
     var isViewMode by remember(uiState.isNotePersisted, userPrefs.defaultOpenInEdit) {
         val initialViewMode = if (uiState.isNotePersisted) {
             !userPrefs.defaultOpenInEdit
@@ -131,13 +134,12 @@ fun NoteDetailScreen(
         }
         mutableStateOf(initialViewMode)
     }
-
-    // Check for modifications to enable Save button
-    // Updated to check isModified from ViewModel
     val isSaveEnabled = !isViewMode && uiState.isModified && (uiState.title.isNotBlank() || uiState.content.isNotBlank())
-
-    val dateString = remember(uiState.lastEdited) {
-        SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(uiState.createdTime))
+    val dateString = remember(uiState.lastEdited, userPrefs.is24HourFormat, userPrefs.dateFormat) {
+        val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
+        val datePattern = userPrefs.dateFormat
+        val pattern = "$datePattern, $timePattern"
+        SimpleDateFormat(pattern, Locale.getDefault()).format(Date(uiState.createdTime))
     }
 
     LaunchedEffect(isImeVisible) {
@@ -148,7 +150,6 @@ fun NoteDetailScreen(
     }
 
     fun handleBack() {
-        // Use isModified to determine if we need to prompt for discard
         if (!isViewMode && uiState.isModified) {
             if (isImeVisible) {
                 pendingDiscard = true
@@ -165,11 +166,6 @@ fun NoteDetailScreen(
         }
     }
 
-    // Conditional Back Handler
-    // We only intercept the back gesture if we are NOT in View Mode (i.e., editing) AND:
-    // 1. The note is modified (might need discard dialog) OR
-    // 2. The note is already persisted (need to switch back to View Mode instead of exiting)
-    // If it's a new clean note or we are just viewing, we let the system handle it (enabling predictive back).
     val shouldInterceptBack = !isViewMode && (uiState.isModified || uiState.isNotePersisted)
     BackHandler(enabled = shouldInterceptBack) {
         handleBack()
@@ -206,7 +202,6 @@ fun NoteDetailScreen(
                             .size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            // Only show Close (X) if in Edit Mode AND Modified
                             val showCloseIcon = !isViewMode && uiState.isModified
                             Icon(
                                 imageVector = if (showCloseIcon) Icons.Default.Close else Icons.AutoMirrored.Outlined.ArrowBack,
@@ -219,7 +214,6 @@ fun NoteDetailScreen(
                 },
                 actions = {
                     if (isArchivedOrTrashed) {
-                        // Show Restore Button (Active for Archived/Trashed notes)
                         Surface(
                             onClick = { showRestoreNoteDialog = true },
                             shape = CircleShape,
@@ -239,9 +233,8 @@ fun NoteDetailScreen(
                             }
                         }
                     } else if (isViewMode) {
-                        // SHOW ACTIONS MENU: Use MoreVert icon
                         Surface(
-                            onClick = { showNoteActionDialog = true }, // Trigger the action dialog
+                            onClick = { showNoteActionDialog = true },
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             modifier = Modifier
@@ -258,10 +251,9 @@ fun NoteDetailScreen(
                             }
                         }
                     } else {
-                        // Show SAVE BUTTON
                         Surface(
                             onClick = {
-                                haptics.success() // Success feedback on save
+                                haptics.success()
                                 viewModel.saveNote()
                                 isViewMode = true
                                 keyboardController?.hide()
@@ -293,7 +285,6 @@ fun NoteDetailScreen(
             )
         },
         bottomBar = {
-            // PinLockBar is hidden if archived/trashed
             val showBottomBar = isViewMode && uiState.isNotePersisted && !isArchivedOrTrashed
 
             AnimatedVisibility(
@@ -317,7 +308,6 @@ fun NoteDetailScreen(
                                 viewModel.toggleLock()
                             } else {
                                 scope.launch {
-                                    // Check if a snackbar is already visible to prevent spamming
                                     if (snackbarHostState.currentSnackbarData == null) {
                                         snackbarHostState.showSnackbar(
                                             message = "Enable Note Lock in Settings to use this feature",
@@ -343,12 +333,10 @@ fun NoteDetailScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- METADATA ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1. Category Chip (Placeholder Logic)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -384,7 +372,6 @@ fun NoteDetailScreen(
                     )
                 }
 
-                // 2. Insert Flexible Spacer to push right content to the edge
                 Spacer(modifier = Modifier.weight(1f))
 
 
@@ -407,7 +394,6 @@ fun NoteDetailScreen(
 //                        )
 //                        Spacer(modifier = Modifier.width(8.dp))
 //                    }
-                    // Show Archive/Trash Icon (Optional Metadata)
                     if (uiState.isArchived) {
                         Icon(
                             imageVector = Icons.Default.Archive,
@@ -418,7 +404,6 @@ fun NoteDetailScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     if (uiState.isTrashed) {
-                        // Icon used for metadata display when note is trashed
                         Icon(
                             imageVector = Icons.Filled.Delete,
                             contentDescription = "Trashed",
@@ -440,11 +425,9 @@ fun NoteDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- TITLE ---
             BasicTextField(
                 value = uiState.title,
                 onValueChange = { viewModel.updateTitle(it) },
-                // Read-only if in View Mode OR if Archived/Trashed
                 readOnly = isViewMode || isArchivedOrTrashed,
                 textStyle = TextStyle(
                     fontSize = 30.sp,
@@ -475,11 +458,9 @@ fun NoteDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- BODY ---
             BasicTextField(
                 value = uiState.content,
                 onValueChange = { viewModel.updateContent(it) },
-                // Read-only if in View Mode OR if Archived/Trashed
                 readOnly = isViewMode || isArchivedOrTrashed,
                 textStyle = TextStyle(
                     fontSize = 18.sp,
@@ -512,7 +493,6 @@ fun NoteDetailScreen(
         }
     }
 
-    // Category Sheet
     if (showCategorySheet) {
         CategorySheet(
             categories = availableCategories,
@@ -527,30 +507,26 @@ fun NoteDetailScreen(
         )
     }
 
-    // Discard Logic
     if (showDiscardDialog) {
         DiscardChangesDialog(
             onDismiss = { showDiscardDialog = false },
             onConfirm = {
                 showDiscardDialog = false
                 if (uiState.isNotePersisted) {
-                    // Existing Note: Undo changes and stay on screen in View Mode
                     viewModel.undoChanges()
                     isViewMode = true
                 } else {
-                    // New Note: Exit screen
                     onBackClick()
                 }
             }
         )
     }
 
-    // Delete Logic (OLD - Only used for compatibility with the dialog)
     if (showDeleteDialog) {
         DeleteNoteDialog(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
-                haptics.heavy() // Destructive action feedback
+                haptics.heavy()
                 showDiscardDialog = false
                 viewModel.deleteNote()
                 onBackClick()
@@ -558,34 +534,32 @@ fun NoteDetailScreen(
         )
     }
 
-    // ✨ NEW ACTION DIALOG CALL
-    if (showNoteActionDialog) { // Assuming you added this state variable
+    if (showNoteActionDialog) {
         NoteActionDialog(
             onDismiss = { showNoteActionDialog = false },
             onArchiveConfirm = {
-                haptics.tick() // Archive feedback
+                haptics.tick()
                 showNoteActionDialog = false
                 viewModel.archiveNote()
-                onBackClick() // FIX 1: Go back to the previous list (Home/Archive)
+                onBackClick()
             },
             onDeleteConfirm = {
-                haptics.heavy() // Trash/Delete feedback
+                haptics.heavy()
                 showNoteActionDialog = false
                 viewModel.deleteNote()
-                onBackClick() // FIX 2: Go back to the previous list (Home/Trash)
+                onBackClick()
             }
         )
     }
 
-    // Restore Logic
     if (showRestoreNoteDialog) {
         RestoreNoteDialog(
             onDismiss = { showRestoreNoteDialog = false },
             onConfirm = {
-                haptics.success() // Restore feedback
+                haptics.success()
                 showRestoreNoteDialog = false
                 viewModel.restoreNote()
-                onBackClick() // ✨ FIX 3: Go back to the previous list (Archive/Trash)
+                onBackClick()
             }
         )
     }

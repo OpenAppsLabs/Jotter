@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.screens.homescreen
 
 import androidx.lifecycle.ViewModel
@@ -19,26 +35,19 @@ class HomeScreenViewModel @Inject constructor(
     private val notesRepository: NotesRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-
-    // Internal flow for category selection (remains local)
     private val _categoryFlow = MutableStateFlow("All")
-
-    // 1. Reactive UI State
     val uiState: StateFlow<UiState> = combine(
-        notesRepository.getAllNotes(), // Live notes from Room (All notes, unfiltered by selectedCategory)
+        notesRepository.getAllNotes(),
         userPreferencesRepository.userPreferencesFlow,
-        _categoryFlow // Last selected chip state
+        _categoryFlow
     ) { notes, prefs, selectedCategory ->
 
-        // --- Calculation of ALL Available Categories (Existing) ---
-        // Get the list of all unique categories from ALL notes (excluding empty strings)
         val allAvailableCategories = notes
             .map { it.category }
             .distinct()
-            .filter { it.isNotBlank() } // Exclude the internal 'no category' marker
+            .filter { it.isNotBlank() }
             .sorted()
 
-        // --- Validation Logic (Existing) ---
         val validatedCategory = if (selectedCategory != "All" && !allAvailableCategories.contains(selectedCategory)) {
             "All"
         } else {
@@ -51,7 +60,6 @@ class HomeScreenViewModel @Inject constructor(
             }
         }
 
-        // --- Filtering Logic (Existing) ---
         val filteredNotes = when (validatedCategory) {
             "All"     -> notes
             "Pinned"  -> notes.filter { it.isPinned }
@@ -60,12 +68,13 @@ class HomeScreenViewModel @Inject constructor(
         }
 
         UiState(
-            allNotes = filteredNotes, // Filtered list goes to the grid
-            selectedCategory = validatedCategory, // Validated state
+            allNotes = filteredNotes,
+            selectedCategory = validatedCategory,
             isGridView = prefs.isGridView,
             allAvailableCategories = allAvailableCategories,
-            showAddCategoryButton = prefs.showAddCategoryButton, // ✨ ADDED: Map preference from repository
-            isBiometricEnabled = prefs.isBiometricEnabled // ✨ ADDED: Propagate lock preference
+            showAddCategoryButton = prefs.showAddCategoryButton,
+            isBiometricEnabled = prefs.isBiometricEnabled,
+            dateFormat = prefs.dateFormat
         )
     }.stateIn(
         scope = viewModelScope,
@@ -78,11 +87,10 @@ class HomeScreenViewModel @Inject constructor(
         val selectedCategory: String = "All",
         val isGridView: Boolean = true,
         val allAvailableCategories: List<String> = emptyList(),
-        val showAddCategoryButton: Boolean = true, // ✨ ADDED: New property for UI control
-        val isBiometricEnabled: Boolean = false // ✨ ADDED: Check if lock is enabled globally
+        val showAddCategoryButton: Boolean = true,
+        val isBiometricEnabled: Boolean = false,
+        val dateFormat: String = "dd MMM"
     )
-
-    // 2. Actions
 
     fun toggleGridView() {
         val currentIsGrid = uiState.value.isGridView

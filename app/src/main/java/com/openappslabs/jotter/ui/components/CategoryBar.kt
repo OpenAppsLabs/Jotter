@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -35,13 +51,12 @@ fun CategoryBar(
     selectedCategory: String,
     onCategorySelect: (String) -> Unit,
     onAddCategoryClick: () -> Unit,
-    showAddButton: Boolean, // ✨ NEW PARAMETER: Controls visibility
+    showAddButton: Boolean,
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
     val haptics = rememberJotterHaptics()
 
-    // ✨ SIMPLIFIED LOGIC: Construct list with only "All" and user categories
     val displayList = remember(categories) {
         val list = mutableListOf("All")
         list.addAll(categories)
@@ -51,7 +66,6 @@ fun CategoryBar(
     LaunchedEffect(selectedCategory) {
         val index = displayList.indexOf(selectedCategory)
         if (index >= 0) {
-            // The custom slow animation for sliding
             val animSpec = tween<Float>(
                 durationMillis = 500,
                 easing = FastOutSlowInEasing
@@ -61,24 +75,19 @@ fun CategoryBar(
             val visibleItem = layoutInfo.visibleItemsInfo.find { it.index == index }
 
             if (visibleItem != null) {
-                // Item is on screen? Use the nice SLOW slide.
                 val itemStart = visibleItem.offset
                 val itemEnd = itemStart + visibleItem.size
                 val viewportEnd = layoutInfo.viewportEndOffset
                 val padding = with(density) { 16.dp.toPx() }
 
                 if (itemEnd > viewportEnd) {
-                    // Slide left to show item
                     listState.animateScrollBy((itemEnd - viewportEnd) + padding, animSpec)
                 } else if (itemStart < 0) {
-                    // Slide right to show item
                     listState.animateScrollBy(itemStart.toFloat() - padding, animSpec)
                 } else if (index == 0 && itemStart > 0) {
-                    // Slide back to start if "All" is floating
                     listState.animateScrollBy(itemStart.toFloat() - padding, animSpec)
                 }
             } else {
-                // Item is completely off-screen? Use standard scroll.
                 listState.animateScrollToItem(index)
             }
         }
@@ -116,7 +125,6 @@ fun CategoryBar(
             )
         }
 
-        // ✨ FIX: Conditionally render the Add chip based on the new parameter
         if (showAddButton) {
             item(key = "AddCategory") {
                 FilterChip(

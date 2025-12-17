@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 Open Apps Labs
+ *
+ * This file is part of Jotter
+ *
+ * Jotter is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * Jotter is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Jotter.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -54,16 +70,15 @@ fun CategorySheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(bottom = 24.dp) // Reduced bottom padding
+                .padding(bottom = 24.dp)
         ) {
-            // --- 1. Header ---
             Text(
                 text = "Choose Category",
-                style = MaterialTheme.typography.titleMedium, // Slightly smaller, sharper title
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp), // Reduced padding
+                    .padding(bottom = 12.dp),
                 textAlign = TextAlign.Center
             )
 
@@ -72,9 +87,8 @@ fun CategorySheet(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
 
-            Spacer(modifier = Modifier.height(12.dp)) // Tight spacing
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // --- 2. Standard Chips ---
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,14 +111,12 @@ fun CategorySheet(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Selected",
-                                    // Increased size for better visibility
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
                         } else null,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            // Ensure explicit high contrast for text and icon
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -114,7 +126,6 @@ fun CategorySheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 3. Minimal Manage Button ---
             OutlinedButton(
                 onClick = {
                     onManageCategoriesClick()
