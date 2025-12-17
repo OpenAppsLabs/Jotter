@@ -1,0 +1,3 @@
+- Added date and time format options
+- Apply GPL-3.0 license and headers
+- Small code cleanup
