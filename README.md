@@ -10,8 +10,17 @@ Jotter is a modern, open-source Android note-taking application built with Jetpa
 
 Get the latest version of **Jotter**:
 
-[![Get it on GitHub](https://img.shields.io/badge/Get%20it%20on-GitHub-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/OpenAppsLabs/Jotter/releases/latest)
-[![Download APK](https://img.shields.io/badge/Download-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/OpenAppsLabs/Jotter/releases/latest/download/app-release.apk)
+<p align="center">
+  <a href="https://github.com/OpenAppsLabs/Jotter/releases/latest/download/app-release.apk">
+    <img src="https://raw.githubusercontent.com/vadret/android/master/assets/get-github.png" alt="Get it on OpenAPK" height="100"/>
+  </a>
+  <a href="https://apt.izzysoft.de/fdroid/index/apk/com.openappslabs.jotter">
+    <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/>
+  </a>
+  <a href="https://www.openapk.net/jotter/com.openappslabs.jotter/">
+    <img src="https://www.openapk.net/images/openapk-badge.png" alt="Get it on OpenAPK" height="100"/>
+  </a>
+</p>
 
 ---
 
@@ -42,33 +51,6 @@ Get the latest version of **Jotter**:
 * **Trash & Archive:** Organize your notes without losing data.  
 * **Haptics Feedback:** Subtle feedback for interactions.  
 * **Multiple View Modes:** List, grid, or compact views for your notes.  
-
-## 🛠️ Tech Stack
-
-Jotter is built using **Modern Android Development (MAD)** standards:
-
-| Category | Library |
-| :--- | :--- |
-| **Language** | [Kotlin](https://kotlinlang.org/) |
-| **UI Toolkit** | [Jetpack Compose](https://developer.android.com/jetpack/compose) |
-| **Design System** | [Material 3](https://m3.material.io/) |
-| **Icons** | [Material Icons Extended](https://fonts.google.com/icons) |
-| **Navigation** | [Navigation Compose](https://developer.android.com/jetpack/compose/navigation) |
-| **Dependency Injection** | [Hilt](https://dagger.dev/hilt/) |
-| **Local Database** | [Room](https://developer.android.com/training/data-storage/room) (w/ KTX support) |
-| **Preferences** | [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) |
-| **Architecture** | MVVM (Model-View-ViewModel) |
-| **Serialization** | Kotlinx Serialization & Gson |
-
----
-
-## 🏗️ Architecture
-
-This app follows the recommended MVVM structure:
-
-* **UI Layer:** Composable functions observing `StateFlow` from ViewModels (utilizing `lifecycle-runtime-compose`).  
-* **Domain/Data Layer:** Repositories mediating between the UI and local data sources (Room/DataStore).  
-* **Single Activity:** Uses a single `MainActivity` with Compose Navigation to handle screens.  
 
 ---
 
