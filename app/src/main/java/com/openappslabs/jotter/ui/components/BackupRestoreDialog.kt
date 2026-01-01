@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -52,41 +53,46 @@ enum class BackupDialogType {
     ERROR
 }
 
+private val DialogOuterRadius = 12.dp
+private val ZeroPadding = PaddingValues(0.dp)
+
 @Composable
 fun BackupRestoreDialog(
     type: BackupDialogType,
     onDismiss: () -> Unit,
     errorMessage: String? = null
 ) {
-    val (title, message, icon, iconColor) = when (type) {
-        BackupDialogType.NO_DATA_TO_EXPORT -> Quadruple(
-            "No Data Found",
-            "You don't have any notes. Please create some notes before exporting.",
-            Icons.Default.Warning,
-            MaterialTheme.colorScheme.tertiary
-        )
-        BackupDialogType.EXPORT_SUCCESS -> Quadruple(
-            "Backup Saved",
-            "Your notes have been successfully exported to your device.",
-            Icons.Default.CheckCircle,
-            MaterialTheme.colorScheme.primary
-        )
-        BackupDialogType.IMPORT_SUCCESS -> Quadruple(
-            "Restore Complete",
-            "Your notes and tags have been successfully restored.",
-            Icons.Default.CheckCircle,
-            MaterialTheme.colorScheme.primary
-        )
-        BackupDialogType.ERROR -> Quadruple(
-            "Operation Failed",
-            errorMessage ?: "An unknown error occurred.",
-            Icons.Default.Error,
-            MaterialTheme.colorScheme.error
-        )
+    val title = remember(type) {
+        when (type) {
+            BackupDialogType.NO_DATA_TO_EXPORT -> "No Data Found"
+            BackupDialogType.EXPORT_SUCCESS -> "Backup Saved"
+            BackupDialogType.IMPORT_SUCCESS -> "Restore Complete"
+            BackupDialogType.ERROR -> "Operation Failed"
+        }
     }
 
-    val outerRadius = 12.dp
-    val zeroPadding = PaddingValues(0.dp)
+    val message = remember(type, errorMessage) {
+        when (type) {
+            BackupDialogType.NO_DATA_TO_EXPORT -> "You don't have any notes. Please create some notes before exporting."
+            BackupDialogType.EXPORT_SUCCESS -> "Your notes have been successfully exported to your device."
+            BackupDialogType.IMPORT_SUCCESS -> "Your notes and categories have been successfully restored."
+            BackupDialogType.ERROR -> errorMessage ?: "An unknown error occurred."
+        }
+    }
+
+    val icon = remember(type) {
+        when (type) {
+            BackupDialogType.NO_DATA_TO_EXPORT -> Icons.Default.Warning
+            BackupDialogType.EXPORT_SUCCESS, BackupDialogType.IMPORT_SUCCESS -> Icons.Default.CheckCircle
+            BackupDialogType.ERROR -> Icons.Default.Error
+        }
+    }
+
+    val iconColor = when (type) {
+        BackupDialogType.NO_DATA_TO_EXPORT -> MaterialTheme.colorScheme.tertiary
+        BackupDialogType.EXPORT_SUCCESS, BackupDialogType.IMPORT_SUCCESS -> MaterialTheme.colorScheme.primary
+        BackupDialogType.ERROR -> MaterialTheme.colorScheme.error
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -99,9 +105,8 @@ fun BackupRestoreDialog(
             )
         ) {
             Column(
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp, top = 24.dp),
-                horizontalAlignment = Alignment.Start // Changed to Start for consistency
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.Start
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -114,7 +119,7 @@ fun BackupRestoreDialog(
                         modifier = Modifier.size(32.dp)
                     )
 
-                    Spacer(modifier = Modifier.width(16.dp)) // Horizontal gap
+                    Spacer(modifier = Modifier.width(16.dp))
 
                     Text(
                         text = title,
@@ -133,26 +138,21 @@ fun BackupRestoreDialog(
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally // Button remains Centered
-            ) {
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(outerRadius),
+                    shape = RoundedCornerShape(DialogOuterRadius),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     elevation = null,
-                    contentPadding = zeroPadding
+                    contentPadding = ZeroPadding
                 ) {
                     Text(
                         text = "OK",
@@ -163,5 +163,3 @@ fun BackupRestoreDialog(
         }
     }
 }
-
-data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

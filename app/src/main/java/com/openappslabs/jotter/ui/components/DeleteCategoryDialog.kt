@@ -17,7 +17,6 @@
 package com.openappslabs.jotter.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,10 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 private val OuterRadius = 25.dp
-private val ZeroPadding = PaddingValues(0.dp)
 
 @Composable
-fun DisableLockWarningDialog(
+fun DeleteCategoryDialog(
+    categoryName: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -74,21 +73,22 @@ fun DisableLockWarningDialog(
             )
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Disable Note Lock?",
+                    text = "Delete Category?",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "This will remove the lock from all currently locked notes. They will become accessible without authentication.",
+                    text = "Are you sure you want to delete \"$categoryName\"? Notes with this category will become uncategorized.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -104,11 +104,11 @@ fun DisableLockWarningDialog(
                     shape = topButtonShape,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        contentColor = MaterialTheme.colorScheme.error
                     ),
-                    contentPadding = ZeroPadding
+                    elevation = null
                 ) {
-                    Text("Disable", fontWeight = FontWeight.SemiBold)
+                    Text("Delete", fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -123,7 +123,7 @@ fun DisableLockWarningDialog(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    contentPadding = ZeroPadding
+                    elevation = null
                 ) {
                     Text("Cancel", fontWeight = FontWeight.SemiBold)
                 }
