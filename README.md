@@ -1,15 +1,14 @@
-<h1 align="center">Jotter</h1>
-
 <p align="center">
     <img src="assets/images/hero-image.png" alt="Hero Banner"/>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/OpenAppsLabs/Jotter?style=for-the-badge&logo=GitHub&color=%23000000"/>
-  <img src="https://img.shields.io/github/downloads/OpenAppsLabs/Jotter/total?style=for-the-badge&logo=GitHub&color=%23000000"/>
-  <img src="https://img.shields.io/github/stars/OpenAppsLabs/Jotter?style=for-the-badge&logo=GitHub&color=%23000000"/>
-  <img src="https://img.shields.io/github/forks/OpenAppsLabs/Jotter?style=for-the-badge&logo=GitHub&color=%23000000"/>
-  <img src="https://img.shields.io/github/license/OpenAppsLabs/Jotter?style=for-the-badge&logo=GitHub&color=%23000000"/>
+    <a href="https://github.com/OpenAppsLabs/Jotter/releases"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/release.svg?variant=outline"></a>
+    <a href="https://github.com/OpenAppsLabs/Jotter/releases"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/downloads.svg?variant=outline"></a>
+    <a href="https://github.com/OpenAppsLabs/Jotter"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/stars.svg?variant=outline"></a>
+    <a href="https://github.com/OpenAppsLabs/Jotter/forks"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/forks.svg?variant=outline"></a>
+    <a href="https://github.com/OpenAppsLabs/Jotter/graphs/contributors"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/contributors.svg?variant=outline"></a>
+    <a href="https://github.com/OpenAppsLabs/Jotter"><img alt="badge" src="https://shieldcn.dev/github/OpenAppsLabs/Jotter/license.svg?variant=outline"></a>
 </p>
 
 Jotter is a modern, free notes app with a sleek, beautiful design. Unlike others loaded with ads and extras, it focuses purely on speed, simplicity, and privacy—offline-first with a dynamic UI that feels effortless. No distractions. No tracking. Just your notes, fast, secure, and only yours.
@@ -28,7 +27,7 @@ Get the latest version of **Jotter**:
     <img src="assets/badges/get-it-on-izzyondroid.png" alt="Get it on IzzyOnDroid" height="100"/>
   </a>
 <br>
-  <a href="https://www.openapk.net/5g/com.openappslabs.jotter/">
+  <a href="https://www.openapk.net/jotter/com.openappslabs.jotter/">
     <img src="assets/badges/get-it-on-openapk.png" alt="Get it on OpenAPK" height="100"/>
   </a>
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/OpenAppsLabs/Jotter">
