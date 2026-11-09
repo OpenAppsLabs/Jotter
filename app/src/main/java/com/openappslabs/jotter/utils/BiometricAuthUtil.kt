@@ -24,6 +24,8 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.openappslabs.jotter.data.model.BiometricAuthType
+
 data class AuthSupport(
     val hasFingerprint: Boolean,
     val hasDeviceCredential: Boolean,

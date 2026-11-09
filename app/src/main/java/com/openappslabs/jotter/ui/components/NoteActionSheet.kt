@@ -16,7 +16,9 @@
 
 package com.openappslabs.jotter.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,11 +31,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Assignment
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.PushPin
@@ -49,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -67,14 +66,10 @@ fun NoteActionSheet(
     category: String,
     isPinned: Boolean,
     isLocked: Boolean,
-    onDeleteClick: () -> Unit,
-    onArchiveClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onDuplicateClick: () -> Unit,
-    onExportClick: () -> Unit,
-    onCopyClick: () -> Unit,
     onPinClick: () -> Unit,
     onLockClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
@@ -103,55 +98,6 @@ fun NoteActionSheet(
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             ActionButton(
-                                icon = Icons.Default.Delete,
-                                text = "Delete",
-                                onClick = onDeleteClick,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            ActionButton(
-                                icon = Icons.Default.Archive,
-                                text = "Archive",
-                                onClick = onArchiveClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            ActionButton(
-                                icon = Icons.Default.Share,
-                                text = "Share",
-                                onClick = onShareClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            ActionButton(
-                                icon = Icons.Default.ContentCopy,
-                                text = "Duplicate",
-                                onClick = onDuplicateClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            ActionButton(
-                                icon = Icons.Default.Description,
-                                text = "Export",
-                                onClick = onExportClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            ActionButton(
-                                icon = Icons.AutoMirrored.Filled.Assignment,
-                                text = "Copy",
-                                onClick = onCopyClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            ActionButton(
                                 icon = if (isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
                                 text = if (isPinned) "Unpin" else "Pin",
                                 onClick = onPinClick,
@@ -164,6 +110,23 @@ fun NoteActionSheet(
                                 text = if (isLocked) "Unlock" else "Lock",
                                 onClick = onLockClick,
                                 isActive = isLocked,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            ActionButton(
+                                icon = Icons.Default.Share,
+                                text = "Share",
+                                onClick = onShareClick,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            ActionButton(
+                                icon = Icons.Default.Delete,
+                                text = "Delete",
+                                onClick = onDeleteClick,
+                                color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -193,7 +156,7 @@ private fun ActionSection(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         modifier = modifier.fillMaxWidth()
     ) {
         Column(
@@ -210,11 +173,30 @@ fun ActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    color: Color = MaterialTheme.colorScheme.onSurface,
     isActive: Boolean = false
 ) {
-    val containerColor = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceContainerHigh
-    val contentColor = if (isActive) MaterialTheme.colorScheme.primary else color
+    val isError = color == MaterialTheme.colorScheme.error
+    val containerColor = when {
+        isActive -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        isError -> MaterialTheme.colorScheme.error.copy(alpha = 0.08f)
+        else -> MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val contentColor = when {
+        isActive -> MaterialTheme.colorScheme.primary
+        isError -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val iconBadgeBg = when {
+        isActive -> MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+        isError -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
+        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    }
+    val iconTint = when {
+        isActive -> MaterialTheme.colorScheme.primary
+        isError -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
 
     Surface(
         onClick = onClick,
@@ -224,19 +206,27 @@ fun ActionButton(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = text,
-                tint = contentColor,
-                modifier = Modifier.size(22.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(iconBadgeBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = text,
+                    tint = iconTint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = contentColor,
                 maxLines = 1

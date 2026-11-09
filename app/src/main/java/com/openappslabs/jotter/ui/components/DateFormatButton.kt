@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -49,7 +48,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 import java.text.SimpleDateFormat
@@ -63,9 +65,8 @@ private val DateFormats = listOf(
 )
 private val IconButtonSize = 44.dp
 private val TotalWidth = IconButtonSize * 2
-private val OuterRadius = 25.dp
+private val OuterRadius = 16.dp
 private val ZeroPadding = PaddingValues(0.dp)
-private val HorizontalPadding = 24.dp
 
 @Composable
 fun DateFormatButton(
@@ -149,51 +150,25 @@ fun DateFormatButton(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = HorizontalPadding, end = HorizontalPadding, top = 24.dp)
-                    ) {
-                        Text(
-                            text = "Date Format",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.align(Alignment.CenterStart)
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                                .clickable { 
-                                    haptics.click()
-                                    showDialog = false 
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                start = HorizontalPadding,
-                                end = HorizontalPadding,
-                                bottom = 24.dp,
-                                top = 24.dp
-                            ),
+                            .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Text(
+                            text = "Date Format",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                platformStyle = PlatformTextStyle(includeFontPadding = false)
+                            ),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
                         DateFormats.forEachIndexed { index, format ->
                             val isSelected = format == currentFormat
 
@@ -222,7 +197,12 @@ fun DateFormatButton(
                             ) {
                                 Text(
                                     text = exampleDates[index],
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                                    ),
+                                    fontSize = 16.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center
                                 )
                             }
 

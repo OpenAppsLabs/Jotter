@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -41,19 +43,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.openappslabs.jotter.data.model.BackupDialogType
+import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
-enum class BackupDialogType {
-    NO_DATA_TO_EXPORT,
-    EXPORT_SUCCESS,
-    IMPORT_SUCCESS,
-    ERROR
-}
-
-private val DialogOuterRadius = 16.dp
 private val ZeroPadding = PaddingValues(0.dp)
 
 @Composable
@@ -62,6 +61,8 @@ fun BackupRestoreDialog(
     onDismiss: () -> Unit,
     errorMessage: String? = null
 ) {
+    val haptics = rememberJotterHaptics()
+
     val title = remember(type) {
         when (type) {
             BackupDialogType.NO_DATA_TO_EXPORT -> "No Data Found"
@@ -88,14 +89,25 @@ fun BackupRestoreDialog(
         }
     }
 
-    val iconColor = when (type) {
+    val tintColor = when (type) {
         BackupDialogType.NO_DATA_TO_EXPORT -> MaterialTheme.colorScheme.tertiary
         BackupDialogType.EXPORT_SUCCESS, BackupDialogType.IMPORT_SUCCESS -> MaterialTheme.colorScheme.primary
         BackupDialogType.ERROR -> MaterialTheme.colorScheme.error
     }
 
+    val buttonText = remember(type) {
+        when (type) {
+            BackupDialogType.EXPORT_SUCCESS, BackupDialogType.IMPORT_SUCCESS -> "Done"
+            BackupDialogType.ERROR -> "Dismiss"
+            BackupDialogType.NO_DATA_TO_EXPORT -> "Got It"
+        }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -103,58 +115,85 @@ fun BackupRestoreDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.Start
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
+                // Header: Compact 40dp icon badge paired with Title
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconColor,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(tintColor.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = tintColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(14.dp))
 
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        ),
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Start
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
+                // Description
                 Text(
                     text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    ),
+                    lineHeight = 21.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
+                // Action Button
                 Button(
-                    onClick = onDismiss,
+                    onClick = {
+                        when (type) {
+                            BackupDialogType.EXPORT_SUCCESS, BackupDialogType.IMPORT_SUCCESS -> haptics.success()
+                            BackupDialogType.ERROR -> haptics.heavy()
+                            BackupDialogType.NO_DATA_TO_EXPORT -> haptics.click()
+                        }
+                        onDismiss()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(DialogOuterRadius),
+                        .height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                        containerColor = tintColor.copy(alpha = 0.14f),
+                        contentColor = tintColor
                     ),
                     elevation = null,
                     contentPadding = ZeroPadding
                 ) {
                     Text(
-                        text = "Okay",
-                        fontWeight = FontWeight.SemiBold
+                        text = buttonText,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

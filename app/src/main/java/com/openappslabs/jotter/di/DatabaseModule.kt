@@ -18,6 +18,7 @@ package com.openappslabs.jotter.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.openappslabs.jotter.data.repository.CategoryRepository
@@ -71,6 +72,17 @@ abstract class DatabaseModule {
             )
                 .addMigrations(MIGRATION_4_5)
                 .fallbackToDestructiveMigration(dropAllTables = true)
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        val prefs = context.getSharedPreferences("jotter_internal", Context.MODE_PRIVATE)
+                        val count = prefs.getInt("archive_migration_runs", 0)
+                        if (count < 3) {
+                            db.execSQL("UPDATE notes SET isArchived = 0 WHERE isArchived = 1")
+                            prefs.edit().putInt("archive_migration_runs", count + 1).apply()
+                        }
+                    }
+                })
                 .build()
         }
 

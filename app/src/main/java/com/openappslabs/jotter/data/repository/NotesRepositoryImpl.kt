@@ -32,7 +32,6 @@ class NotesRepositoryImpl @Inject constructor(
 ) : NotesRepository {
 
     override fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
-    override fun getArchivedNotes(): Flow<List<Note>> = noteDao.getArchivedNotes()
     override fun getTrashedNotes(): Flow<List<Note>> = noteDao.getTrashedNotes()
     override suspend fun getNoteById(noteId: Int): Note? = noteDao.getNoteById(noteId)
 
@@ -42,24 +41,6 @@ class NotesRepositoryImpl @Inject constructor(
 
     override suspend fun updateNote(note: Note) {
         noteDao.update(note.copy(updatedTime = System.currentTimeMillis()))
-    }
-
-    override suspend fun archiveNote(note: Note) {
-        noteDao.updateNoteStatus(
-            noteId = note.id,
-            isArchived = true,
-            isTrashed = false,
-            updatedTime = System.currentTimeMillis()
-        )
-    }
-
-    override suspend fun unarchiveNote(note: Note) {
-        noteDao.updateNoteStatus(
-            noteId = note.id,
-            isArchived = false,
-            isTrashed = false,
-            updatedTime = System.currentTimeMillis()
-        )
     }
 
     override suspend fun trashNote(note: Note) {
@@ -100,7 +81,8 @@ class NotesRepositoryImpl @Inject constructor(
         database.withTransaction {
             noteDao.deleteAllNotes()
             categoryDao.deleteAllCategories()
-            noteDao.insertAll(backupData.notes)
+            val sanitizedNotes = backupData.notes.map { it.copy(isArchived = false) }
+            noteDao.insertAll(sanitizedNotes)
             categoryDao.insertAll(backupData.categories)
         }
     }

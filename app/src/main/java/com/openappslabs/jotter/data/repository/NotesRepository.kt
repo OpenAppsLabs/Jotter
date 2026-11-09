@@ -19,17 +19,15 @@ package com.openappslabs.jotter.data.repository
 import com.openappslabs.jotter.data.model.BackupData
 import com.openappslabs.jotter.data.model.Note
 import kotlinx.coroutines.flow.Flow
+
 interface NotesRepository {
     fun getAllNotes(): Flow<List<Note>>
-    fun getArchivedNotes(): Flow<List<Note>>
     fun getTrashedNotes(): Flow<List<Note>>
     fun getCategories(): Flow<List<String>>
     suspend fun getNoteById(noteId: Int): Note?
     suspend fun addNote(note: Note): Long
     suspend fun updateNote(note: Note)
 
-    suspend fun archiveNote(note: Note)
-    suspend fun unarchiveNote(note: Note)
     suspend fun trashNote(note: Note)
     suspend fun restoreNote(note: Note)
     suspend fun deleteNote(note: Note)

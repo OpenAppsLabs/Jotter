@@ -65,7 +65,6 @@ class NoteDetailViewModel @Inject constructor(
         val category: String = "",
         val isPinned: Boolean = false,
         val isLocked: Boolean = false,
-        val isArchived: Boolean = false,
         val isTrashed: Boolean = false,
         val createdTime: Long = System.currentTimeMillis(),
         val lastEdited: Long = System.currentTimeMillis(),
@@ -142,7 +141,6 @@ class NoteDetailViewModel @Inject constructor(
                     category = note.category,
                     isPinned = note.isPinned,
                     isLocked = note.isLocked,
-                    isArchived = note.isArchived,
                     isTrashed = note.isTrashed,
                     createdTime = note.createdTime,
                     lastEdited = note.updatedTime,
@@ -169,7 +167,6 @@ class NoteDetailViewModel @Inject constructor(
                     category = currentState.category,
                     isPinned = currentState.isPinned,
                     isLocked = currentState.isLocked,
-                    isArchived = currentState.isArchived,
                     isTrashed = currentState.isTrashed,
                     createdTime = currentState.createdTime,
                     updatedTime = System.currentTimeMillis()
@@ -231,8 +228,8 @@ class NoteDetailViewModel @Inject constructor(
                 category = currentState.category,
                 isPinned = currentState.isPinned,
                 isLocked = currentState.isLocked,
-                isArchived = currentState.isArchived,
-                isTrashed = currentState.isTrashed
+                isTrashed = currentState.isTrashed,
+                createdTime = currentState.createdTime
             )
 
             if (currentState.isNotePersisted) {
@@ -257,12 +254,6 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
-    fun archiveNote() {
-        viewModelScope.launch {
-            notesRepository.archiveNote(Note(id = uiState.value.id ?: 0))
-        }
-    }
-
     fun restoreNote() {
         viewModelScope.launch {
             notesRepository.restoreNote(Note(id = uiState.value.id ?: 0))
@@ -275,22 +266,4 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
-    fun duplicateNote(onComplete: (Int) -> Unit) {
-        viewModelScope.launch {
-            val current = uiState.value
-            val newTitle = if (current.title.isNotBlank()) "Copy of ${current.title}" else "Copy of Untitled"
-            val duplicatedNote = Note(
-                id = 0,
-                title = newTitle,
-                content = current.content,
-                category = current.category,
-                isPinned = false,
-                isLocked = false,
-                isArchived = false,
-                isTrashed = false
-            )
-            val newId = notesRepository.addNote(duplicatedNote).toInt()
-            onComplete(newId)
-        }
-    }
 }

@@ -43,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.openappslabs.jotter.data.model.SortDirection
+import com.openappslabs.jotter.data.model.SortType
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
 @Immutable

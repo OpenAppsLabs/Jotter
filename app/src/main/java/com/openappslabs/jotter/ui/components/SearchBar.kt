@@ -90,13 +90,13 @@ fun SearchBar(
 
     val placeholderStyle = remember {
         TextStyle(
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             textAlign = TextAlign.Center
         )
     }
     val textFieldStyle = remember(onSurfaceColor) {
         TextStyle(
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             color = onSurfaceColor,
             textAlign = TextAlign.Start
         )

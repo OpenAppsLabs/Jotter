@@ -23,8 +23,8 @@ import com.openappslabs.jotter.data.model.Note
 import com.openappslabs.jotter.data.repository.CategoryRepository
 import com.openappslabs.jotter.data.repository.NotesRepository
 import com.openappslabs.jotter.data.repository.UserPreferencesRepository
-import com.openappslabs.jotter.ui.components.SortDirection
-import com.openappslabs.jotter.ui.components.SortType
+import com.openappslabs.jotter.data.model.SortDirection
+import com.openappslabs.jotter.data.model.SortType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -142,8 +142,8 @@ class HomeScreenViewModel @Inject constructor(
         val showSortButton: Boolean = false,
         val isBiometricEnabled: Boolean = false,
         val dateFormat: String = "dd MMM",
-        val sortType: SortType = SortType.ALPHABETICAL,
-        val sortDirection: SortDirection = SortDirection.ASCENDING
+        val sortType: SortType = SortType.LAST_UPDATED,
+        val sortDirection: SortDirection = SortDirection.DESCENDING
     )
 
     fun toggleGridView() {

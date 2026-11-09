@@ -24,7 +24,6 @@ import androidx.navigation.compose.composable
 import com.openappslabs.jotter.ui.screens.aboutscreen.AboutScreen
 import com.openappslabs.jotter.ui.screens.addcategoryscreen.AddCategoryScreen
 import com.openappslabs.jotter.ui.screens.appearancescreen.AppearanceScreen
-import com.openappslabs.jotter.ui.screens.archivescreen.ArchiveScreen
 import com.openappslabs.jotter.ui.screens.datamanagementscreen.DataManagementScreen
 import com.openappslabs.jotter.ui.screens.miscellaneousscreen.MiscellaneousScreen
 import com.openappslabs.jotter.ui.screens.homescreen.HomeScreen
@@ -68,17 +67,9 @@ fun AppNavHost(
                 onPrivacyPolicyClick = { navController.navigate(AppRoutes.PrivacyPolicy) },
                 onAboutClick = { navController.navigate(AppRoutes.About) },
                 onAppearanceClick = { navController.navigate(AppRoutes.AppearanceScreen) },
+                onTrashClick = { navController.navigate(AppRoutes.Trash) },
                 onMiscellaneousClick = { navController.navigate(AppRoutes.MiscellaneousScreen) },
                 onSecurityClick = { navController.navigate(AppRoutes.SecurityScreen) }
-            )
-        }
-
-        composable<AppRoutes.Archive> {
-            ArchiveScreen(
-                onBackClick = navController::popBackStack,
-                onNoteClick = { noteId ->
-                    navController.navigate(AppRoutes.NoteDetail(noteId = noteId))
-                }
             )
         }
 
@@ -119,9 +110,7 @@ fun AppNavHost(
         composable<AppRoutes.MiscellaneousScreen> {
             MiscellaneousScreen(
                 onBackClick = { navController.popBackStack() },
-                onManageTagsClick = { navController.navigate(AppRoutes.AddCategory) },
-                onArchiveClick = { navController.navigate(AppRoutes.Archive) },
-                onTrashClick = { navController.navigate(AppRoutes.Trash) }
+                onManageTagsClick = { navController.navigate(AppRoutes.AddCategory) }
             )
         }
 
