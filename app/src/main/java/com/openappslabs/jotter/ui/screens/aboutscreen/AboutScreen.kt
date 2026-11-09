@@ -83,8 +83,8 @@ fun AboutScreen(
                 title = {
                     Text(
                         text = "About",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {

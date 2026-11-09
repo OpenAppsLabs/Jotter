@@ -30,9 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -63,8 +61,6 @@ import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 fun MiscellaneousScreen(
     onBackClick: () -> Unit,
     onManageTagsClick: () -> Unit,
-    onArchiveClick: () -> Unit,
-    onTrashClick: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel()
 ) {
     val haptics = rememberJotterHaptics()
@@ -91,8 +87,8 @@ fun MiscellaneousScreen(
                 title = {
                     Text(
                         text = "Miscellaneous",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
@@ -138,24 +134,6 @@ fun MiscellaneousScreen(
                         title = "Categories",
                         subtitle = "Add, edit or remove categories",
                         onClick = onManageTagsClick
-                    )
-                }
-            }
-            item {
-                SettingsGroup {
-                    SettingsItemArrow(
-                        icon = Icons.Default.Archive,
-                        title = "Archived notes",
-                        subtitle = "Notes you archive appear here",
-                        onClick = onArchiveClick
-                    )
-                    TinyGap()
-
-                    SettingsItemArrow(
-                        icon = Icons.Default.Delete,
-                        title = "Trash",
-                        subtitle = "Notes you delete appear here",
-                        onClick = onTrashClick
                     )
                 }
             }

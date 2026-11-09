@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -46,6 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.SearchOff
+import com.openappslabs.jotter.ui.components.EmptyState
 import com.openappslabs.jotter.ui.components.CategoryBar
 import com.openappslabs.jotter.ui.components.CategoryItems
 import com.openappslabs.jotter.ui.components.FAB
@@ -134,15 +140,44 @@ fun HomeScreen(
                 }
             )
 
-            LazyVerticalStaggeredGrid(
-                state = listState,
+            if (uiState.allNotes.isEmpty()) {
+                val (emptyIcon, emptyTitle, emptyDescription) = when {
+                    uiState.searchQuery.isNotBlank() -> Triple(
+                        Icons.Outlined.SearchOff,
+                        "No Notes Found",
+                        "No notes match \"${uiState.searchQuery}\""
+                    )
+                    uiState.selectedCategory != "All" -> Triple(
+                        Icons.Outlined.FolderOff,
+                        "No Notes in ${uiState.selectedCategory}",
+                        "Notes added to this category will appear here."
+                    )
+                    else -> Triple(
+                        Icons.Outlined.EditNote,
+                        "No Notes Yet",
+                        "Tap the + button to create your first note."
+                    )
+                }
+
+                EmptyState(
+                    icon = emptyIcon,
+                    title = emptyTitle,
+                    description = emptyDescription,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(bottom = 48.dp)
+                )
+            } else {
+                LazyVerticalStaggeredGrid(
+                    state = listState,
                 columns = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(
-                        topStart = 24.dp,
-                        topEnd = 24.dp,
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
                         bottomStart = 0.dp,
                         bottomEnd = 0.dp
                     )),
@@ -185,6 +220,7 @@ fun HomeScreen(
                         modifier  = Modifier.animateItem()
                     )
                 }
+            }
             }
         }
     }

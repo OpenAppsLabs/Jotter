@@ -59,9 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.openappslabs.jotter.ui.components.EmptyTrashDialog
+import com.openappslabs.jotter.ui.components.EmptyState
 import com.openappslabs.jotter.ui.components.NoteCard
-import com.openappslabs.jotter.ui.components.RestoreAllDialog
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 import com.openappslabs.jotter.utils.BiometricAuthUtil
 import java.text.SimpleDateFormat
@@ -99,8 +99,8 @@ fun TrashScreen(
                 title = {
                     Text(
                         text = "Trash",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
@@ -174,23 +174,28 @@ fun TrashScreen(
                 .padding(innerPadding)
         ) {
             if (trashedNotes.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    EmptyTrashContent()
-                }
+                EmptyState(
+                    icon = Icons.Default.DeleteForever,
+                    title = "Nothing in the Trash",
+                    description = "Notes you delete will appear here.",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 48.dp)
+                )
             } else {
+                Spacer(modifier = Modifier.height(8.dp))
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(if (uiState.isGridView) 2 else 1),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
                         .clip(RoundedCornerShape(
-                            topStart = 24.dp,
-                            topEnd = 24.dp,
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
                             bottomStart = 0.dp,
                             bottomEnd = 0.dp
                         )),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalItemSpacing = 12.dp
                 ) {
@@ -230,63 +235,28 @@ fun TrashScreen(
         }
 
         if (showEmptyTrashDialog) {
-            EmptyTrashDialog(
-                onDismiss = {
-                    haptics.click()
-                    viewModel.dismissEmptyTrashDialog()
-                },
-                onConfirm = {
-                    haptics.heavy()
-                    viewModel.confirmEmptyTrash()
-                }
+            ConfirmationDialog(
+                icon = Icons.Default.DeleteForever,
+                title = "Empty Trash?",
+                message = "Are you sure you want to permanently delete all notes in trash? This action cannot be undone.",
+                confirmText = "Empty Trash",
+                isDestructive = true,
+                onDismiss = { viewModel.dismissEmptyTrashDialog() },
+                onConfirm = { viewModel.confirmEmptyTrash() }
             )
         }
 
         if (showRestoreDialog) {
-            RestoreAllDialog(
-                noteCount = trashedNotes.size,
-                onDismiss = {
-                    haptics.click()
-                    viewModel.dismissRestoreAllDialog()
-                },
-                onConfirm = {
-                    haptics.success()
-                    viewModel.confirmRestoreAll()
-                }
+            val countText = if (trashedNotes.size == 1) "1 note" else "${trashedNotes.size} notes"
+            ConfirmationDialog(
+                icon = Icons.Default.Restore,
+                title = "Restore All Notes?",
+                message = "Are you sure you want to restore all $countText to your active list?",
+                confirmText = "Restore All",
+                isDestructive = false,
+                onDismiss = { viewModel.dismissRestoreAllDialog() },
+                onConfirm = { viewModel.confirmRestoreAll() }
             )
         }
-    }
-}
-
-@Composable
-private fun EmptyTrashContent() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(32.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.DeleteForever,
-            contentDescription = "Trash Icon",
-            modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Nothing in the Trash",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Notes you delete will appear here, and are automatically removed after 7 days.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-        )
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Security
@@ -67,6 +68,7 @@ fun SettingsScreen(
     onPrivacyPolicyClick: () -> Unit,
     onAboutClick: () -> Unit,
     onAppearanceClick: () -> Unit,
+    onTrashClick: () -> Unit,
     onMiscellaneousClick: () -> Unit,
     onSecurityClick: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel()
@@ -95,8 +97,8 @@ fun SettingsScreen(
                 title = {
                     Text(
                         text = "Settings",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
@@ -147,9 +149,18 @@ fun SettingsScreen(
                     TinyGap()
 
                     SettingsItemArrow(
+                        icon = Icons.Default.Delete,
+                        title = "Trash",
+                        subtitle = "Notes you delete appear here",
+                        onClick = onTrashClick
+                    )
+
+                    TinyGap()
+
+                    SettingsItemArrow(
                         icon = Icons.Default.Dashboard,
                         title = "Miscellaneous",
-                        subtitle = "Tags, archive & trash",
+                        subtitle = "Categories & preferences",
                         onClick = onMiscellaneousClick
                     )
                 }

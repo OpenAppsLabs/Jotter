@@ -66,8 +66,8 @@ fun PrivacyPolicyScreen(
                 title = {
                     Text(
                         text = "Privacy Policy",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {

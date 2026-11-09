@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,7 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.openappslabs.jotter.ui.components.DisableLockWarningDialog
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
 import com.openappslabs.jotter.ui.screens.settingsscreen.SettingsScreenViewModel
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsGroup
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemNoteLock
@@ -99,8 +100,8 @@ fun SecurityScreen(
                 title = {
                     Text(
                         text = "Security",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
@@ -220,13 +221,14 @@ fun SecurityScreen(
         }
 
         if (showDisableLockWarningDialog) {
-            DisableLockWarningDialog(
-                onDismiss = {
-                    haptics.click()
-                    showDisableLockWarningDialog = false
-                },
+            ConfirmationDialog(
+                icon = Icons.Default.LockOpen,
+                title = "Disable Note Lock?",
+                message = "This will remove the lock from all currently locked notes. They will become accessible without authentication.",
+                confirmText = "Disable Lock",
+                isDestructive = true,
+                onDismiss = { showDisableLockWarningDialog = false },
                 onConfirm = {
-                    haptics.heavy()
                     showDisableLockWarningDialog = false
                     viewModel.updateBiometricEnabled(false)
                 }

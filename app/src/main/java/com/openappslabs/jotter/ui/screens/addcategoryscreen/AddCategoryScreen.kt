@@ -87,7 +87,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.openappslabs.jotter.ui.components.DeleteCategoryDialog
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,11 +175,14 @@ fun AddCategoryScreen(
     }
 
     categoryToDelete?.let { categoryName ->
-        DeleteCategoryDialog(
-            categoryName = categoryName,
+        ConfirmationDialog(
+            icon = Icons.Default.Delete,
+            title = "Delete Category?",
+            message = "Are you sure you want to delete \"$categoryName\"? Notes in this category will become uncategorized.",
+            confirmText = "Delete",
+            isDestructive = true,
             onDismiss = { categoryToDelete = null },
             onConfirm = {
-                haptics.heavy()
                 viewModel.removeCategory(categoryName)
                 categoryToDelete = null
             }
@@ -192,8 +195,8 @@ fun AddCategoryScreen(
                 title = {
                     Text(
                         text = "Manage Categories",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
