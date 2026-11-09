@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.trashscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,24 +106,7 @@ fun TrashScreen(
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier.padding(start = 12.dp).size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 actions = {
                     if (trashedNotes.isNotEmpty()) {

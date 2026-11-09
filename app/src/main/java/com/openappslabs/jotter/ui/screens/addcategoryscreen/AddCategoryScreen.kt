@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.addcategoryscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -165,7 +167,6 @@ fun AddCategoryScreen(
         }
     }
 
-    // UX FIX: Handle keyboard close first before reset/back
     BackHandler(enabled = isImeVisible || editingCategoryName != null || textFieldValue.text.isNotEmpty()) {
         if (isImeVisible) {
             focusManager.clearFocus()
@@ -200,26 +201,7 @@ fun AddCategoryScreen(
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -238,8 +220,8 @@ fun AddCategoryScreen(
                 }
                 .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(
-                    topStart = 12.dp,
-                    topEnd = 12.dp,
+                    topStart = 16.dp,
+                    topEnd = 16.dp,
                     bottomStart = 0.dp,
                     bottomEnd = 0.dp
                 ))

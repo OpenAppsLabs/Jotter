@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.aboutscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -88,26 +90,7 @@ fun AboutScreen(
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,

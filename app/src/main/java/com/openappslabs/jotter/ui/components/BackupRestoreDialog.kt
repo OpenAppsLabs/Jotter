@@ -118,7 +118,6 @@ fun BackupRestoreDialog(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // Header: Compact 40dp icon badge paired with Title
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -153,7 +152,6 @@ fun BackupRestoreDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Description
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -169,7 +167,6 @@ fun BackupRestoreDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Action Button
                 Button(
                     onClick = {
                         when (type) {

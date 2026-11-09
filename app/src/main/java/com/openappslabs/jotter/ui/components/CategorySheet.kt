@@ -82,10 +82,8 @@ fun CategorySheet(
             try {
                 sheetState.hide()
             } finally {
-                if (!sheetState.isVisible) {
-                    onDismiss()
-                    onFinished()
-                }
+                onDismiss()
+                onFinished()
             }
         }
     }
@@ -116,7 +114,6 @@ fun CategorySheet(
                 textAlign = TextAlign.Center
             )
 
-            // Section 1: Compact Categories Flow Card (no icons, no scaling, active color only)
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(16.dp),
@@ -129,7 +126,6 @@ fun CategorySheet(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Option: None / Uncategorized
                     CategoryChip(
                         label = "None",
                         isSelected = selectedCategory.isBlank(),
@@ -161,7 +157,6 @@ fun CategorySheet(
                 }
             }
 
-            // Section 2: Manage Categories Action
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(16.dp),

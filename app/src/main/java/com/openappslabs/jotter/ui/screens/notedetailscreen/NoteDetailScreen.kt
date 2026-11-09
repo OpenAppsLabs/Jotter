@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.notedetailscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -133,23 +135,6 @@ fun NoteDetailScreen(
 
     val isSaveEnabled = !isViewMode && uiState.isModified && (uiState.title.isNotBlank() || uiState.content.isNotBlank())
 
-    val locale = Locale.getDefault()
-    val dateString = remember(uiState.createdTime, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
-        val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
-        else "${userPrefs.dateFormat} yyyy"
-        val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
-        val pattern = "$datePattern, $timePattern"
-        SimpleDateFormat(pattern, locale).format(Date(uiState.createdTime))
-    }
-
-    val modifiedDateString = remember(uiState.lastEdited, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
-        val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
-        else "${userPrefs.dateFormat} yyyy"
-        val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
-        val pattern = "$datePattern, $timePattern"
-        SimpleDateFormat(pattern, locale).format(Date(uiState.lastEdited))
-    }
-
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val primaryColor = MaterialTheme.colorScheme.primary
 
@@ -257,27 +242,12 @@ fun NoteDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            handleBack()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            val showCloseIcon = !isViewMode && uiState.isModified
-                            Icon(
-                                imageVector = if (showCloseIcon) Icons.Default.Close else Icons.Default.ChevronLeft,
-                                contentDescription = if (showCloseIcon) "Close" else "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    val showCloseIcon = !isViewMode && uiState.isModified
+                    BackButton(
+                        onClick = ::handleBack,
+                        icon = if (showCloseIcon) Icons.Default.Close else Icons.Default.ChevronLeft,
+                        contentDescription = if (showCloseIcon) "Close" else "Back"
+                    )
                 },
                 actions = {
                     if (isTrashed) {
@@ -452,6 +422,8 @@ fun NoteDetailScreen(
             },
             onManageCategoriesClick = {
                 haptics.click()
+                showCategorySheet = false
+                showNoteActionSheet = false
                 onManageCategoryClick()
             },
             onDismiss = { showCategorySheet = false }
@@ -484,6 +456,23 @@ fun NoteDetailScreen(
 
 
     if (showNoteActionSheet) {
+        val locale = Locale.getDefault()
+        val dateString = remember(uiState.createdTime, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
+            val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
+            else "${userPrefs.dateFormat} yyyy"
+            val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
+            val pattern = "$datePattern, $timePattern"
+            SimpleDateFormat(pattern, locale).format(Date(uiState.createdTime))
+        }
+
+        val modifiedDateString = remember(uiState.lastEdited, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
+            val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
+            else "${userPrefs.dateFormat} yyyy"
+            val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
+            val pattern = "$datePattern, $timePattern"
+            SimpleDateFormat(pattern, locale).format(Date(uiState.lastEdited))
+        }
+
         NoteActionSheet(
             sheetState = noteActionSheetState,
             scope = scope,
@@ -527,6 +516,7 @@ fun NoteDetailScreen(
             },
             onCategoryClick = {
                 haptics.click()
+                showNoteActionSheet = false
                 showCategorySheet = true
             },
             onDismissRequest = { showNoteActionSheet = false }

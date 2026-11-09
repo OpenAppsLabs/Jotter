@@ -111,7 +111,6 @@ fun ConfirmationDialog(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // Header: Compact 40dp icon badge paired with Title
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -146,7 +145,6 @@ fun ConfirmationDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Description
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -162,13 +160,11 @@ fun ConfirmationDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Bottom Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Cancel / Dismiss
                     Button(
                         onClick = {
                             haptics.click()
@@ -192,7 +188,6 @@ fun ConfirmationDialog(
                         )
                     }
 
-                    // Confirm
                     Button(
                         onClick = {
                             if (isDestructive) {

@@ -36,8 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.comparisons.compareByDescending
-import kotlin.comparisons.thenBy
-import kotlin.comparisons.thenByDescending
+import kotlin.comparisons.then
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
@@ -86,29 +85,16 @@ class HomeScreenViewModel @Inject constructor(
         val sortType = SortType.valueOf(prefs.sortType)
         val sortDirection = SortDirection.valueOf(prefs.sortDirection)
 
-        val sortedNotes = when (sortType) {
-            SortType.ALPHABETICAL -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.title })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.title })
-                }
-            }
-            SortType.CREATED -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.createdTime })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.createdTime })
-                }
-            }
-            SortType.LAST_UPDATED -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.updatedTime })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedTime })
-                }
-            }
+        val baseComparator: Comparator<Note> = when (sortType) {
+            SortType.ALPHABETICAL -> Comparator { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
+            SortType.CREATED -> Comparator { a, b -> a.createdTime.compareTo(b.createdTime) }
+            SortType.LAST_UPDATED -> Comparator { a, b -> a.updatedTime.compareTo(b.updatedTime) }
         }
+        val comparator = if (sortDirection == SortDirection.DESCENDING) baseComparator.reversed() else baseComparator
+
+        val sortedNotes = filteredNotes.sortedWith(
+            compareByDescending<Note> { it.isPinned }.then(comparator)
+        )
 
         UiState(
             allNotes = sortedNotes,

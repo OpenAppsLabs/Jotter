@@ -103,13 +103,11 @@ fun SortSheet(
                 textAlign = TextAlign.Center
             )
 
-            // Section 1: Direction
             DirectionSegmentedControl(
                 currentDirection = currentSortDirection,
                 onDirectionChange = onSortDirectionChange
             )
 
-            // Section 2: Criteria Group Card
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(16.dp),
