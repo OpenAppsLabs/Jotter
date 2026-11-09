@@ -59,8 +59,8 @@ android {
         applicationId = "com.openappslabs.jotter"
         minSdk = 29
         targetSdk = 36
-        versionCode = 12
-        versionName = "2.4.0"
+        versionCode = 13
+        versionName = "2.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,0 +1,17 @@
+> Warning: Please back up your notes before updating to this version.
+
+Fixes
+- Fixed a bug where editing a note would reset its original creation date. Your original date created is now kept permanently.
+- Fixed an issue where changing a category caused two menus to open and overlap on top of each other.
+- Fixed the keyboard staying open when backing out of an unsaved note.
+- Corrected the message in Trash that wrongly said notes delete after 7 days (they stay until you empty the trash yourself).
+
+Changes
+- Removed the Archive feature to keep things simple. Don't worry—any notes you previously archived have been moved safely into your main notes list so you won't lose them.
+- Moved Trash directly into Settings so it's much easier to find.
+- Cleaned up the note options menu. Cut out the clutter (Copy, Duplicate, Export, Archive) and kept just the essentials: Pin, Lock, Share, and Delete.
+- Adjusted text sizes and spacing in the editor so titles aren't oversized and notes are easier on the eyes.
+- Made rounded corners and top headers consistent across the whole app.
+- Tapping the plus button opens the keyboard right away so you can start typing without an extra tap.
+- Fresh, cleaner menus for sorting your notes and picking categories.
+- Added a small edit button right on the category card so you can jump straight into managing your tags.
