@@ -23,8 +23,8 @@ import com.openappslabs.jotter.data.model.Note
 import com.openappslabs.jotter.data.repository.CategoryRepository
 import com.openappslabs.jotter.data.repository.NotesRepository
 import com.openappslabs.jotter.data.repository.UserPreferencesRepository
-import com.openappslabs.jotter.ui.components.SortDirection
-import com.openappslabs.jotter.ui.components.SortType
+import com.openappslabs.jotter.data.model.SortDirection
+import com.openappslabs.jotter.data.model.SortType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,8 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.comparisons.compareByDescending
-import kotlin.comparisons.thenBy
-import kotlin.comparisons.thenByDescending
+import kotlin.comparisons.then
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
@@ -86,29 +85,16 @@ class HomeScreenViewModel @Inject constructor(
         val sortType = SortType.valueOf(prefs.sortType)
         val sortDirection = SortDirection.valueOf(prefs.sortDirection)
 
-        val sortedNotes = when (sortType) {
-            SortType.ALPHABETICAL -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.title })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.title })
-                }
-            }
-            SortType.CREATED -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.createdTime })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.createdTime })
-                }
-            }
-            SortType.LAST_UPDATED -> {
-                if (sortDirection == SortDirection.ASCENDING) {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenBy { it.updatedTime })
-                } else {
-                    filteredNotes.sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedTime })
-                }
-            }
+        val baseComparator: Comparator<Note> = when (sortType) {
+            SortType.ALPHABETICAL -> Comparator { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
+            SortType.CREATED -> Comparator { a, b -> a.createdTime.compareTo(b.createdTime) }
+            SortType.LAST_UPDATED -> Comparator { a, b -> a.updatedTime.compareTo(b.updatedTime) }
         }
+        val comparator = if (sortDirection == SortDirection.DESCENDING) baseComparator.reversed() else baseComparator
+
+        val sortedNotes = filteredNotes.sortedWith(
+            compareByDescending<Note> { it.isPinned }.then(comparator)
+        )
 
         UiState(
             allNotes = sortedNotes,
@@ -142,8 +128,8 @@ class HomeScreenViewModel @Inject constructor(
         val showSortButton: Boolean = false,
         val isBiometricEnabled: Boolean = false,
         val dateFormat: String = "dd MMM",
-        val sortType: SortType = SortType.ALPHABETICAL,
-        val sortDirection: SortDirection = SortDirection.ASCENDING
+        val sortType: SortType = SortType.LAST_UPDATED,
+        val sortDirection: SortDirection = SortDirection.DESCENDING
     )
 
     fun toggleGridView() {

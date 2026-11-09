@@ -56,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -63,22 +64,29 @@ import androidx.compose.ui.unit.dp
 import com.openappslabs.jotter.data.model.AppTheme
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
-private val ComponentHeight = 44.dp
+private val DefaultThreeOptionHeight = 44.dp
+
+data class ThreeOptionItem(
+    val label: String,
+    val icon: ImageVector? = null
+)
 
 @Composable
-fun ThemeSelector(
-    selectedTheme: AppTheme,
-    onThemeSelected: (AppTheme) -> Unit,
+fun ThreeOptionButton(
+    selectedIndex: Int,
+    onOptionSelected: (Int) -> Unit,
+    options: List<ThreeOptionItem>,
     modifier: Modifier = Modifier,
+    height: Dp = DefaultThreeOptionHeight
 ) {
+    require(options.size == 3) { "ThreeOptionButton requires exactly 3 options" }
     val haptics = rememberJotterHaptics()
-    val options = AppTheme.entries
     val springSpec = remember { spring<Dp>(stiffness = 300f) }
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(ComponentHeight)
+            .height(height)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
@@ -88,10 +96,11 @@ fun ThemeSelector(
         val outerPadding = 4.dp
         val itemWidth = (maxWidth - (outerPadding * 2) - (spacing * (count - 1))) / count
 
+        val clampedIndex = selectedIndex.coerceIn(0, count - 1)
         val indicatorOffset by animateDpAsState(
-            targetValue = outerPadding + (itemWidth + spacing) * selectedTheme.ordinal,
+            targetValue = outerPadding + (itemWidth + spacing) * clampedIndex,
             animationSpec = springSpec,
-            label = "IndicatorOffset"
+            label = "ThreeOptionIndicatorOffset"
         )
 
         Box(
@@ -111,11 +120,11 @@ fun ThemeSelector(
             horizontalArrangement = Arrangement.spacedBy(spacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            for (option in options) {
-                val isSelected = selectedTheme == option
+            options.forEachIndexed { index, option ->
+                val isSelected = clampedIndex == index
                 val contentColor by animateColorAsState(
                     targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    label = "ContentColor"
+                    label = "ThreeOptionContentColor"
                 )
 
                 Box(
@@ -130,7 +139,7 @@ fun ThemeSelector(
                             onClick = {
                                 if (!isSelected) {
                                     haptics.tick()
-                                    onThemeSelected(option)
+                                    onOptionSelected(index)
                                 }
                             }
                         ),
@@ -140,33 +149,30 @@ fun ThemeSelector(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        AnimatedVisibility(
-                            visible = isSelected,
-                            enter = fadeIn() + scaleIn(spring(stiffness = 300f)) + expandHorizontally(
-                                animationSpec = spring(stiffness = 300f)
-                            ),
-                            exit = fadeOut() + scaleOut(spring(stiffness = 300f)) + shrinkHorizontally(
-                                animationSpec = spring(stiffness = 300f)
-                            )
-                        ) {
-                            val icon = when (option) {
-                                AppTheme.SYSTEM -> Icons.Default.AutoMode
-                                AppTheme.LIGHT -> Icons.Default.LightMode
-                                AppTheme.DARK -> Icons.Default.DarkMode
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    tint = contentColor,
-                                    modifier = Modifier.size(18.dp)
+                        if (option.icon != null) {
+                            AnimatedVisibility(
+                                visible = isSelected,
+                                enter = fadeIn() + scaleIn(spring(stiffness = 300f)) + expandHorizontally(
+                                    animationSpec = spring(stiffness = 300f)
+                                ),
+                                exit = fadeOut() + scaleOut(spring(stiffness = 300f)) + shrinkHorizontally(
+                                    animationSpec = spring(stiffness = 300f)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = option.icon,
+                                        contentDescription = null,
+                                        tint = contentColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
                             }
                         }
 
                         Text(
-                            text = option.name.lowercase().replaceFirstChar { it.uppercase() },
+                            text = option.label,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             color = contentColor
@@ -176,4 +182,30 @@ fun ThemeSelector(
             }
         }
     }
+}
+
+@Composable
+fun ThreeOptionButton(
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+    modifier: Modifier = Modifier,
+    height: Dp = DefaultThreeOptionHeight
+) {
+    val themeOptions = remember {
+        listOf(
+            ThreeOptionItem(label = "System", icon = Icons.Default.AutoMode),
+            ThreeOptionItem(label = "Light", icon = Icons.Default.LightMode),
+            ThreeOptionItem(label = "Dark", icon = Icons.Default.DarkMode)
+        )
+    }
+
+    ThreeOptionButton(
+        selectedIndex = selectedTheme.ordinal,
+        onOptionSelected = { index ->
+            onThemeSelected(AppTheme.entries[index])
+        },
+        options = themeOptions,
+        modifier = modifier,
+        height = height
+    )
 }

@@ -16,9 +16,9 @@
 
 package com.openappslabs.jotter.ui.screens.notedetailscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -36,7 +36,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -73,6 +75,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,13 +84,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openappslabs.jotter.ui.components.CategoryItems
 import com.openappslabs.jotter.ui.components.CategorySheet
-import com.openappslabs.jotter.ui.components.DeleteNoteDialog
-import com.openappslabs.jotter.ui.components.DiscardChangesDialog
-import com.openappslabs.jotter.ui.components.EditViewButton
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
+import com.openappslabs.jotter.ui.components.TwoOptionButton
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Visibility
 import com.openappslabs.jotter.ui.components.NoteActionSheet
-import com.openappslabs.jotter.ui.components.RestoreNoteDialog
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 import com.openappslabs.jotter.utils.NoteUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,7 +111,6 @@ fun NoteDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val userPrefs by viewModel.userPreferences.collectAsStateWithLifecycle()
     var showDiscardDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
     var showRestoreNoteDialog by remember { mutableStateOf(false) }
     var pendingDiscard by remember { mutableStateOf(false) }
@@ -116,22 +120,9 @@ fun NoteDetailScreen(
     val availableCategories by viewModel.availableCategories.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    val titleFocusRequester = remember { FocusRequester() }
     val contentFocusRequester = remember { FocusRequester() }
 
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/plain"),
-        onResult = { uri ->
-            uri?.let {
-                val textToSave = NoteUtils.formatNote(uiState.title, uiState.content)
-                val success = NoteUtils.saveTextToUri(context, it, textToSave)
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        if (success) "Note exported successfully" else "Failed to export note"
-                    )
-                }
-            }
-        }
-    )
 
     var isViewMode by remember(uiState.isNotePersisted, userPrefs.defaultOpenInEdit) {
         val initialViewMode = if (uiState.isNotePersisted) {
@@ -144,45 +135,47 @@ fun NoteDetailScreen(
 
     val isSaveEnabled = !isViewMode && uiState.isModified && (uiState.title.isNotBlank() || uiState.content.isNotBlank())
 
-    val locale = Locale.getDefault()
-    val dateString = remember(uiState.createdTime, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
-        val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
-        else "${userPrefs.dateFormat} yyyy"
-        val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
-        val pattern = "$datePattern, $timePattern"
-        SimpleDateFormat(pattern, locale).format(Date(uiState.createdTime))
-    }
-
-    val modifiedDateString = remember(uiState.lastEdited, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
-        val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
-        else "${userPrefs.dateFormat} yyyy"
-        val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
-        val pattern = "$datePattern, $timePattern"
-        SimpleDateFormat(pattern, locale).format(Date(uiState.lastEdited))
-    }
-
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val primaryColor = MaterialTheme.colorScheme.primary
 
     val titleStyle = remember(onSurfaceColor) {
         TextStyle(
-            fontSize = 30.sp,
+            fontSize = 24.sp,
+            lineHeight = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = onSurfaceColor
+            color = onSurfaceColor,
+            platformStyle = PlatformTextStyle(includeFontPadding = false),
+            lineHeightStyle = LineHeightStyle(
+                alignment = LineHeightStyle.Alignment.Center,
+                trim = LineHeightStyle.Trim.Both
+            )
         )
     }
 
     val contentStyle = remember(onSurfaceColor) {
         TextStyle(
-            fontSize = 18.sp,
-            lineHeight = 28.sp,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
             fontWeight = FontWeight.Normal,
-            color = onSurfaceColor.copy(alpha = 0.85f)
+            color = onSurfaceColor.copy(alpha = 0.95f),
+            platformStyle = PlatformTextStyle(includeFontPadding = false),
+            lineHeightStyle = LineHeightStyle(
+                alignment = LineHeightStyle.Alignment.Center,
+                trim = LineHeightStyle.Trim.Both
+            )
         )
     }
 
     val cursorBrush = remember(primaryColor) {
         SolidColor(primaryColor)
+    }
+
+    LaunchedEffect(uiState.isNotePersisted) {
+        if (!uiState.isNotePersisted) {
+            delay(200)
+            titleFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
     }
 
     LaunchedEffect(isImeVisible) {
@@ -193,7 +186,7 @@ fun NoteDetailScreen(
     }
 
     fun handleBack() {
-        if (!isViewMode && uiState.isModified) {
+        if (uiState.isNotePersisted && !isViewMode && uiState.isModified) {
             if (isImeVisible) {
                 pendingDiscard = true
                 keyboardController?.hide()
@@ -201,16 +194,25 @@ fun NoteDetailScreen(
                 showDiscardDialog = true
             }
         } else {
-            onBackClick()
+            keyboardController?.hide()
+            if (isImeVisible) {
+                scope.launch {
+                    delay(120)
+                    onBackClick()
+                }
+            } else {
+                onBackClick()
+            }
         }
     }
 
-    val shouldInterceptBack = !isViewMode && uiState.isModified
+    val shouldInterceptBack = (uiState.isNotePersisted && !isViewMode && uiState.isModified) || 
+                              (!uiState.isNotePersisted && isImeVisible)
     BackHandler(enabled = shouldInterceptBack) {
         handleBack()
     }
 
-    val isArchivedOrTrashed = uiState.isArchived || uiState.isTrashed
+    val isTrashed = uiState.isTrashed
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -218,13 +220,17 @@ fun NoteDetailScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    if (uiState.isNotePersisted && !isArchivedOrTrashed) {
-                        EditViewButton(
-                            isEditing = !isViewMode,
+                    if (uiState.isNotePersisted && !isTrashed) {
+                        TwoOptionButton(
+                            isSecondSelected = isViewMode,
                             onToggle = {
                                 haptics.tick()
                                 isViewMode = !isViewMode
                             },
+                            firstIcon = Icons.Default.Create,
+                            secondIcon = Icons.Default.Visibility,
+                            firstDescription = "Edit Mode",
+                            secondDescription = "View Mode",
                             iconButtonSize = 48.dp
                         )
                     } else {
@@ -236,30 +242,15 @@ fun NoteDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            handleBack()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            val showCloseIcon = !isViewMode && uiState.isModified
-                            Icon(
-                                imageVector = if (showCloseIcon) Icons.Default.Close else Icons.Default.ChevronLeft,
-                                contentDescription = if (showCloseIcon) "Close" else "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    val showCloseIcon = !isViewMode && uiState.isModified
+                    BackButton(
+                        onClick = ::handleBack,
+                        icon = if (showCloseIcon) Icons.Default.Close else Icons.Default.ChevronLeft,
+                        contentDescription = if (showCloseIcon) "Close" else "Back"
+                    )
                 },
                 actions = {
-                    if (isArchivedOrTrashed) {
+                    if (isTrashed) {
                         Surface(
                             onClick = {
                                 haptics.click()
@@ -352,7 +343,7 @@ fun NoteDetailScreen(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        if (!isArchivedOrTrashed && !isViewMode) {
+                        if (!isTrashed && !isViewMode) {
                             contentFocusRequester.requestFocus()
                         }
                     }
@@ -364,18 +355,22 @@ fun NoteDetailScreen(
                 BasicTextField(
                     value = uiState.title,
                     onValueChange = { viewModel.updateTitle(it) },
-                    readOnly = isViewMode || isArchivedOrTrashed,
+                    readOnly = isViewMode || isTrashed,
                     textStyle = titleStyle,
                     cursorBrush = cursorBrush,
                     keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { contentFocusRequester.requestFocus() }
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .focusRequester(contentFocusRequester),
+                        .focusRequester(titleFocusRequester),
                     decorationBox = { innerTextField ->
                         Box {
-                            if (uiState.title.isEmpty() && !isViewMode && !isArchivedOrTrashed) {
+                            if (uiState.title.isEmpty() && !isViewMode && !isTrashed) {
                                 Text(
                                     text = "Untitled",
                                     style = titleStyle.copy(color = onSurfaceColor.copy(alpha = 0.3f))
@@ -385,11 +380,11 @@ fun NoteDetailScreen(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 BasicTextField(
                     value = uiState.content,
                     onValueChange = { viewModel.updateContent(it) },
-                    readOnly = isViewMode || isArchivedOrTrashed,
+                    readOnly = isViewMode || isTrashed,
                     textStyle = contentStyle,
                     cursorBrush = cursorBrush,
                     keyboardOptions = KeyboardOptions(
@@ -400,7 +395,7 @@ fun NoteDetailScreen(
                         .focusRequester(contentFocusRequester),
                     decorationBox = { innerTextField ->
                         Box {
-                            if (uiState.content.isEmpty() && !isViewMode && !isArchivedOrTrashed) {
+                            if (uiState.content.isEmpty() && !isViewMode && !isTrashed) {
                                 Text(
                                     text = "Start typing...",
                                     style = contentStyle.copy(color = onSurfaceColor.copy(alpha = 0.3f))
@@ -427,6 +422,8 @@ fun NoteDetailScreen(
             },
             onManageCategoriesClick = {
                 haptics.click()
+                showCategorySheet = false
+                showNoteActionSheet = false
                 onManageCategoryClick()
             },
             onDismiss = { showCategorySheet = false }
@@ -434,40 +431,48 @@ fun NoteDetailScreen(
     }
 
     if (showDiscardDialog) {
-        DiscardChangesDialog(
-            onDismiss = {
-                haptics.click()
-                showDiscardDialog = false
-            },
+        ConfirmationDialog(
+            icon = Icons.Default.Close,
+            title = "Discard changes?",
+            message = "You have unsaved changes. If you discard them now, your changes will be lost.",
+            confirmText = "Discard",
+            isDestructive = true,
+            onDismiss = { showDiscardDialog = false },
             onConfirm = {
-                haptics.tick()
                 showDiscardDialog = false
+                keyboardController?.hide()
                 if (uiState.isNotePersisted) {
                     viewModel.undoChanges()
                     isViewMode = true
                 } else {
-                    onBackClick()
+                    scope.launch {
+                        delay(120)
+                        onBackClick()
+                    }
                 }
             }
         )
     }
 
-    if (showDeleteDialog) {
-        DeleteNoteDialog(
-            onDismiss = {
-                haptics.click()
-                showDeleteDialog = false
-            },
-            onConfirm = {
-                haptics.heavy()
-                showDiscardDialog = false
-                viewModel.deleteNote()
-                onBackClick()
-            }
-        )
-    }
 
     if (showNoteActionSheet) {
+        val locale = Locale.getDefault()
+        val dateString = remember(uiState.createdTime, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
+            val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
+            else "${userPrefs.dateFormat} yyyy"
+            val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
+            val pattern = "$datePattern, $timePattern"
+            SimpleDateFormat(pattern, locale).format(Date(uiState.createdTime))
+        }
+
+        val modifiedDateString = remember(uiState.lastEdited, userPrefs.is24HourFormat, userPrefs.dateFormat, locale) {
+            val datePattern = if (userPrefs.dateFormat.contains("/")) "${userPrefs.dateFormat}/yyyy"
+            else "${userPrefs.dateFormat} yyyy"
+            val timePattern = if (userPrefs.is24HourFormat) "HH:mm" else "hh:mm a"
+            val pattern = "$datePattern, $timePattern"
+            SimpleDateFormat(pattern, locale).format(Date(uiState.lastEdited))
+        }
+
         NoteActionSheet(
             sheetState = noteActionSheetState,
             scope = scope,
@@ -478,45 +483,6 @@ fun NoteDetailScreen(
             category = uiState.category,
             isPinned = uiState.isPinned,
             isLocked = uiState.isLocked,
-            onDeleteClick = {
-                haptics.heavy()
-                showNoteActionSheet = false
-                viewModel.deleteNote()
-                onBackClick()
-            },
-            onArchiveClick = {
-                haptics.tick()
-                showNoteActionSheet = false
-                viewModel.archiveNote()
-                onBackClick()
-            },
-            onShareClick = {
-                haptics.click()
-                val textToShare = NoteUtils.formatNote(uiState.title, uiState.content)
-                NoteUtils.shareNote(context, textToShare)
-                showNoteActionSheet = false
-            },
-            onDuplicateClick = {
-                haptics.click()
-                viewModel.duplicateNote { newId ->
-                    showNoteActionSheet = false
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Note duplicated")
-                    }
-                }
-            },
-            onExportClick = {
-                haptics.click()
-                showNoteActionSheet = false
-                val fileName = if (uiState.title.isNotBlank()) "${uiState.title}.txt" else "JotterNote.txt"
-                exportLauncher.launch(fileName)
-            },
-            onCopyClick = {
-                haptics.success()
-                val textToCopy = NoteUtils.formatNote(uiState.title, uiState.content)
-                NoteUtils.copyToClipboard(context, textToCopy)
-                showNoteActionSheet = false
-            },
             onPinClick = {
                 haptics.tick()
                 viewModel.togglePin()
@@ -536,8 +502,21 @@ fun NoteDetailScreen(
                     }
                 }
             },
+            onShareClick = {
+                haptics.click()
+                val textToShare = NoteUtils.formatNote(uiState.title, uiState.content)
+                NoteUtils.shareNote(context, textToShare)
+                showNoteActionSheet = false
+            },
+            onDeleteClick = {
+                haptics.heavy()
+                showNoteActionSheet = false
+                viewModel.deleteNote()
+                onBackClick()
+            },
             onCategoryClick = {
                 haptics.click()
+                showNoteActionSheet = false
                 showCategorySheet = true
             },
             onDismissRequest = { showNoteActionSheet = false }
@@ -545,13 +524,14 @@ fun NoteDetailScreen(
     }
 
     if (showRestoreNoteDialog) {
-        RestoreNoteDialog(
-            onDismiss = {
-                haptics.click()
-                showRestoreNoteDialog = false
-            },
+        ConfirmationDialog(
+            icon = Icons.Default.Restore,
+            title = "Restore Note?",
+            message = "Are you sure you want to restore this note to your main list?",
+            confirmText = "Restore",
+            isDestructive = false,
+            onDismiss = { showRestoreNoteDialog = false },
             onConfirm = {
-                haptics.success()
                 showRestoreNoteDialog = false
                 viewModel.restoreNote()
                 onBackClick()

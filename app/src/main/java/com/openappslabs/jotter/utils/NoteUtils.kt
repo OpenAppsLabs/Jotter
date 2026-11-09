@@ -16,11 +16,8 @@
 
 package com.openappslabs.jotter.utils
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 
 object NoteUtils {
     fun countWords(text: String): Int {
@@ -36,29 +33,11 @@ object NoteUtils {
         return if (title.isBlank()) content else "$title\n$content"
     }
 
-    fun copyToClipboard(context: Context, text: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("Jotter Note", text)
-        clipboard.setPrimaryClip(clip)
-    }
-
     fun shareNote(context: Context, text: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
         context.startActivity(Intent.createChooser(intent, "Share Note"))
-    }
-
-    fun saveTextToUri(context: Context, uri: Uri, text: String): Boolean {
-        return try {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(text.toByteArray())
-            }
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
     }
 }

@@ -22,9 +22,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.openappslabs.jotter.ui.components.SortDirection
-import com.openappslabs.jotter.ui.components.SortType
 import com.openappslabs.jotter.data.model.AppTheme
+import com.openappslabs.jotter.data.model.SortDirection
+import com.openappslabs.jotter.data.model.SortType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -47,8 +47,8 @@ data class UserPreferences(
     val showSortButton: Boolean = false,
     val is24HourFormat: Boolean = false,
     val dateFormat: String = "dd MMM",
-    val sortType: String = SortType.ALPHABETICAL.name,
-    val sortDirection: String = SortDirection.ASCENDING.name
+    val sortType: String = SortType.LAST_UPDATED.name,
+    val sortDirection: String = SortDirection.DESCENDING.name
 )
 
 class UserPreferencesRepository @Inject constructor(
@@ -97,8 +97,8 @@ class UserPreferencesRepository @Inject constructor(
                 showSortButton = preferences[Keys.SHOW_SORT_BUTTON] ?: false,
                 is24HourFormat = preferences[Keys.IS_24_HOUR_FORMAT] ?: false,
                 dateFormat = preferences[Keys.DATE_FORMAT] ?: "dd MMM",
-                sortType = preferences[Keys.SORT_TYPE] ?: SortType.ALPHABETICAL.name,
-                sortDirection = preferences[Keys.SORT_DIRECTION] ?: SortDirection.ASCENDING.name
+                sortType = preferences[Keys.SORT_TYPE] ?: SortType.LAST_UPDATED.name,
+                sortDirection = preferences[Keys.SORT_DIRECTION] ?: SortDirection.DESCENDING.name
             )
         }
         .distinctUntilChanged()

@@ -50,11 +50,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openappslabs.jotter.data.model.AppTheme
+import androidx.compose.material.icons.automirrored.outlined.ViewList
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.outlined.GridView
 import com.openappslabs.jotter.ui.components.DateFormatButton
-import com.openappslabs.jotter.ui.components.EditViewButton
-import com.openappslabs.jotter.ui.components.GridListButton
-import com.openappslabs.jotter.ui.components.ThemeSelector
-import com.openappslabs.jotter.ui.components.TimeFormatButton
+import com.openappslabs.jotter.ui.components.TwoOptionButton
+import com.openappslabs.jotter.ui.components.ThreeOptionButton
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 import com.openappslabs.jotter.utils.AuthSupport
 
@@ -200,9 +202,13 @@ fun SettingsItemGridView(
     onToggle: () -> Unit
 ) {
     SettingsItemBase(icon = icon, title = title, subtitle = subtitle) {
-        GridListButton(
-            isGridView = isGridView,
-            onToggle = onToggle
+        TwoOptionButton(
+            isSecondSelected = isGridView,
+            onToggle = onToggle,
+            firstIcon = Icons.AutoMirrored.Outlined.ViewList,
+            secondIcon = Icons.Outlined.GridView,
+            firstDescription = "List View",
+            secondDescription = "Grid View"
         )
     }
 }
@@ -269,9 +275,11 @@ fun SettingsItemTimeFormat(
     onToggle: (Boolean) -> Unit
 ) {
     SettingsItemBase(icon = icon, title = title, subtitle = subtitle) {
-        TimeFormatButton(
-            is24Hour = is24Hour,
-            onToggle = { onToggle(!is24Hour) }
+        TwoOptionButton(
+            isSecondSelected = is24Hour,
+            onToggle = { onToggle(!is24Hour) },
+            firstText = "12h",
+            secondText = "24h"
         )
     }
 }
@@ -301,9 +309,13 @@ fun SettingsItemEditView(
     onToggleEditDefault: (Boolean) -> Unit
 ) {
     SettingsItemBase(icon = icon, title = title, subtitle = subtitle) {
-        EditViewButton(
-            isEditing = isEditDefault,
-            onToggle = { onToggleEditDefault(!isEditDefault) }
+        TwoOptionButton(
+            isSecondSelected = !isEditDefault,
+            onToggle = { onToggleEditDefault(!isEditDefault) },
+            firstIcon = Icons.Default.Create,
+            secondIcon = Icons.Default.Visibility,
+            firstDescription = "Edit Mode",
+            secondDescription = "View Mode"
         )
     }
 }
@@ -362,7 +374,7 @@ fun SettingsItemTheme(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        ThemeSelector(
+        ThreeOptionButton(
             selectedTheme = selectedTheme,
             onThemeSelected = onThemeSelected
         )

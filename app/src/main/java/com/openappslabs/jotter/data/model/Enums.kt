@@ -16,6 +16,42 @@
 
 package com.openappslabs.jotter.data.model
 
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+
 enum class AppTheme {
     SYSTEM, LIGHT, DARK
+}
+
+enum class SortDirection {
+    ASCENDING, DESCENDING
+}
+
+enum class SortType {
+    ALPHABETICAL, CREATED, LAST_UPDATED;
+
+    fun next(): SortType {
+        val values = entries.toTypedArray()
+        val nextOrdinal = (ordinal + 1) % values.size
+        return values[nextOrdinal]
+    }
+}
+
+enum class BiometricAuthType(val authenticators: Int) {
+    NONE(0),
+    BIOMETRIC(BIOMETRIC_STRONG),
+    DEVICE_CREDENTIAL(androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL);
+
+    val isAvailable: Boolean get() = this != NONE
+    val label: String get() = when (this) {
+        NONE -> "None"
+        BIOMETRIC -> "Biometric"
+        DEVICE_CREDENTIAL -> "Device Credential"
+    }
+}
+
+enum class BackupDialogType {
+    NO_DATA_TO_EXPORT,
+    EXPORT_SUCCESS,
+    IMPORT_SUCCESS,
+    ERROR
 }

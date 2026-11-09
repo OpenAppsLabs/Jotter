@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.addcategoryscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -87,7 +89,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.openappslabs.jotter.ui.components.DeleteCategoryDialog
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,7 +167,6 @@ fun AddCategoryScreen(
         }
     }
 
-    // UX FIX: Handle keyboard close first before reset/back
     BackHandler(enabled = isImeVisible || editingCategoryName != null || textFieldValue.text.isNotEmpty()) {
         if (isImeVisible) {
             focusManager.clearFocus()
@@ -175,11 +176,14 @@ fun AddCategoryScreen(
     }
 
     categoryToDelete?.let { categoryName ->
-        DeleteCategoryDialog(
-            categoryName = categoryName,
+        ConfirmationDialog(
+            icon = Icons.Default.Delete,
+            title = "Delete Category?",
+            message = "Are you sure you want to delete \"$categoryName\"? Notes in this category will become uncategorized.",
+            confirmText = "Delete",
+            isDestructive = true,
             onDismiss = { categoryToDelete = null },
             onConfirm = {
-                haptics.heavy()
                 viewModel.removeCategory(categoryName)
                 categoryToDelete = null
             }
@@ -192,31 +196,12 @@ fun AddCategoryScreen(
                 title = {
                     Text(
                         text = "Manage Categories",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -235,8 +220,8 @@ fun AddCategoryScreen(
                 }
                 .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(
-                    topStart = 12.dp,
-                    topEnd = 12.dp,
+                    topStart = 16.dp,
+                    topEnd = 16.dp,
                     bottomStart = 0.dp,
                     bottomEnd = 0.dp
                 ))

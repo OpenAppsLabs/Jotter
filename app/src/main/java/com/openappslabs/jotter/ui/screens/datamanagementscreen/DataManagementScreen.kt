@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.datamanagementscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +34,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
@@ -56,9 +59,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.openappslabs.jotter.ui.components.BackupDialogType
+import com.openappslabs.jotter.data.model.BackupDialogType
 import com.openappslabs.jotter.ui.components.BackupRestoreDialog
-import com.openappslabs.jotter.ui.components.ClearAllDataDialog
+import com.openappslabs.jotter.ui.components.ConfirmationDialog
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsGroup
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemArrow
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.TinyGap
@@ -129,31 +132,12 @@ fun DataManagementScreen(
                 title = {
                     Text(
                         text = "Data Management",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -230,13 +214,14 @@ fun DataManagementScreen(
     }
 
     if (showClearAllDialog) {
-        ClearAllDataDialog(
-            onDismiss = {
-                haptics.click()
-                showClearAllDialog = false
-            },
+        ConfirmationDialog(
+            icon = Icons.Default.Warning,
+            title = "Clear All Data",
+            message = "Are you sure you want to clear all data? This action cannot be undone.",
+            confirmText = "Clear All Data",
+            isDestructive = true,
+            onDismiss = { showClearAllDialog = false },
             onConfirm = {
-                haptics.heavy()
                 showClearAllDialog = false
                 viewModel.clearAllData()
             }

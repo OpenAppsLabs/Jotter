@@ -27,9 +27,6 @@ sealed interface AppRoutes {
     data object Settings : AppRoutes
 
     @Serializable
-    data object Archive : AppRoutes
-
-    @Serializable
     data object Trash : AppRoutes
 
     @Serializable

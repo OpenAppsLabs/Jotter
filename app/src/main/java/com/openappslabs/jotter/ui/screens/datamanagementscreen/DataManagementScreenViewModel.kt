@@ -54,10 +54,9 @@ class DataManagementScreenViewModel @Inject constructor(
     val uiState: StateFlow<DataManagementUiState> = combine(
         _internalUiState,
         notesRepository.getAllNotes(),
-        notesRepository.getArchivedNotes(),
         notesRepository.getCategories()
-    ) { currentUi, notes, archived, categories ->
-        val hasData = notes.isNotEmpty() || archived.isNotEmpty() || categories.isNotEmpty()
+    ) { currentUi, notes, categories ->
+        val hasData = notes.isNotEmpty() || categories.isNotEmpty()
         currentUi.copy(hasDataToExport = hasData)
     }
     .distinctUntilChanged()

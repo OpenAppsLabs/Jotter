@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.TextFields
@@ -75,6 +76,7 @@ fun NoteInfoCard(
                     valueColor = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = Icons.Outlined.Edit,
                 )
             }
             MetadataSection(
@@ -148,6 +150,7 @@ private fun InfoItem(
     modifier: Modifier = Modifier,
     valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
     fontWeight: FontWeight = FontWeight.Bold,
+    trailingIcon: ImageVector? = null,
 ) {
     Row(
         modifier = modifier,
@@ -170,7 +173,7 @@ private fun InfoItem(
         
         Spacer(modifier = Modifier.width(12.dp))
         
-        Column {
+        Column(modifier = if (trailingIcon != null) Modifier.weight(1f) else Modifier) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
@@ -183,6 +186,23 @@ private fun InfoItem(
                 fontWeight = fontWeight,
                 color = valueColor
             )
+        }
+
+        if (trailingIcon != null) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = "Edit Category",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

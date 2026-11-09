@@ -16,6 +16,8 @@
 
 package com.openappslabs.jotter.ui.screens.settingsscreen
 
+import com.openappslabs.jotter.ui.components.BackButton
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Security
@@ -67,6 +70,7 @@ fun SettingsScreen(
     onPrivacyPolicyClick: () -> Unit,
     onAboutClick: () -> Unit,
     onAppearanceClick: () -> Unit,
+    onTrashClick: () -> Unit,
     onMiscellaneousClick: () -> Unit,
     onSecurityClick: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel()
@@ -95,31 +99,12 @@ fun SettingsScreen(
                 title = {
                     Text(
                         text = "Settings",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
-                    Surface(
-                        onClick = {
-                            haptics.click()
-                            onBackClick()
-                        },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    BackButton(onClick = onBackClick)
                 },
                 colors = appBarColors
             )
@@ -147,9 +132,18 @@ fun SettingsScreen(
                     TinyGap()
 
                     SettingsItemArrow(
+                        icon = Icons.Default.Delete,
+                        title = "Trash",
+                        subtitle = "Notes you delete appear here",
+                        onClick = onTrashClick
+                    )
+
+                    TinyGap()
+
+                    SettingsItemArrow(
                         icon = Icons.Default.Dashboard,
                         title = "Miscellaneous",
-                        subtitle = "Tags, archive & trash",
+                        subtitle = "Categories & preferences",
                         onClick = onMiscellaneousClick
                     )
                 }

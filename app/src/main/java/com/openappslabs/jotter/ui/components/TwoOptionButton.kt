@@ -29,11 +29,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ViewList
-import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,22 +39,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
-private val IconButtonSize = 44.dp
-
 @Composable
-fun GridListButton(
-    isGridView: Boolean,
+fun TwoOptionButton(
+    isSecondSelected: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconButtonSize: Dp = 44.dp,
+    firstContent: @Composable (isSelected: Boolean) -> Unit,
+    secondContent: @Composable (isSelected: Boolean) -> Unit
 ) {
     val haptics = rememberJotterHaptics()
-    val activeContentColor = MaterialTheme.colorScheme.primary
-    val inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     val activeContainerColor = MaterialTheme.colorScheme.secondaryContainer
 
     val springSpec = remember {
@@ -67,22 +66,22 @@ fun GridListButton(
     }
 
     val offsetX by animateDpAsState(
-        targetValue = if (!isGridView) 0.dp else IconButtonSize,
+        targetValue = if (isSecondSelected) iconButtonSize else 0.dp,
         animationSpec = springSpec,
-        label = "SlidingIndicatorOffset"
+        label = "TwoOptionButtonOffset"
     )
 
     Box(
         modifier = modifier
-            .width(IconButtonSize * 2)
-            .height(IconButtonSize)
+            .width(iconButtonSize * 2)
+            .height(iconButtonSize)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         Box(
             modifier = Modifier
                 .graphicsLayer { translationX = offsetX.toPx() }
-                .size(IconButtonSize)
+                .size(iconButtonSize)
                 .clip(CircleShape)
                 .background(activeContainerColor)
         )
@@ -97,20 +96,16 @@ fun GridListButton(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Button,
-                        onClick = { 
-                            if (isGridView) {
+                        onClick = {
+                            if (isSecondSelected) {
                                 haptics.tick()
-                                onToggle() 
+                                onToggle()
                             }
                         }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ViewList,
-                    contentDescription = "List View",
-                    tint = if (!isGridView) activeContentColor else inactiveContentColor
-                )
+                firstContent(!isSecondSelected)
             }
 
             Box(
@@ -122,21 +117,89 @@ fun GridListButton(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Button,
-                        onClick = { 
-                            if (!isGridView) {
+                        onClick = {
+                            if (!isSecondSelected) {
                                 haptics.tick()
-                                onToggle() 
+                                onToggle()
                             }
                         }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.GridView,
-                    contentDescription = "Grid View",
-                    tint = if (isGridView) activeContentColor else inactiveContentColor
-                )
+                secondContent(isSecondSelected)
             }
         }
     }
+}
+
+@Composable
+fun TwoOptionButton(
+    isSecondSelected: Boolean,
+    onToggle: () -> Unit,
+    firstIcon: ImageVector,
+    secondIcon: ImageVector,
+    modifier: Modifier = Modifier,
+    firstDescription: String? = null,
+    secondDescription: String? = null,
+    iconButtonSize: Dp = 44.dp
+) {
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+
+    TwoOptionButton(
+        isSecondSelected = isSecondSelected,
+        onToggle = onToggle,
+        modifier = modifier,
+        iconButtonSize = iconButtonSize,
+        firstContent = { isSelected ->
+            Icon(
+                imageVector = firstIcon,
+                contentDescription = firstDescription,
+                tint = if (isSelected) activeColor else inactiveColor
+            )
+        },
+        secondContent = { isSelected ->
+            Icon(
+                imageVector = secondIcon,
+                contentDescription = secondDescription,
+                tint = if (isSelected) activeColor else inactiveColor
+            )
+        }
+    )
+}
+
+@Composable
+fun TwoOptionButton(
+    isSecondSelected: Boolean,
+    onToggle: () -> Unit,
+    firstText: String,
+    secondText: String,
+    modifier: Modifier = Modifier,
+    iconButtonSize: Dp = 44.dp
+) {
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+
+    TwoOptionButton(
+        isSecondSelected = isSecondSelected,
+        onToggle = onToggle,
+        modifier = modifier,
+        iconButtonSize = iconButtonSize,
+        firstContent = { isSelected ->
+            Text(
+                text = firstText,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) activeColor else inactiveColor
+            )
+        },
+        secondContent = { isSelected ->
+            Text(
+                text = secondText,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) activeColor else inactiveColor
+            )
+        }
+    )
 }
