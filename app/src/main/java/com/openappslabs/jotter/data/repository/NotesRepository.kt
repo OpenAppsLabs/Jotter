@@ -27,6 +27,8 @@ interface NotesRepository {
     suspend fun getNoteById(noteId: Int): Note?
     suspend fun addNote(note: Note): Long
     suspend fun updateNote(note: Note)
+    suspend fun updatePinStatus(noteId: Int, isPinned: Boolean)
+    suspend fun updateLockStatus(noteId: Int, isLocked: Boolean)
 
     suspend fun trashNote(note: Note)
     suspend fun restoreNote(note: Note)
