@@ -33,8 +33,14 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :noteId")
     suspend fun getNoteById(noteId: Int): Note?
 
-    @Query("UPDATE notes SET isArchived = :isArchived, isTrashed = :isTrashed, updatedTime = :updatedTime WHERE id = :noteId")
-    suspend fun updateNoteStatus(noteId: Int, isArchived: Boolean, isTrashed: Boolean, updatedTime: Long)
+    @Query("UPDATE notes SET isArchived = :isArchived, isTrashed = :isTrashed WHERE id = :noteId")
+    suspend fun updateNoteStatus(noteId: Int, isArchived: Boolean, isTrashed: Boolean)
+
+    @Query("UPDATE notes SET isPinned = :isPinned WHERE id = :noteId")
+    suspend fun updatePinStatus(noteId: Int, isPinned: Boolean)
+
+    @Query("UPDATE notes SET isLocked = :isLocked WHERE id = :noteId")
+    suspend fun updateLockStatus(noteId: Int, isLocked: Boolean)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: Note): Long
