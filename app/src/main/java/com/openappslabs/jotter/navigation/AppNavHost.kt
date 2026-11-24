@@ -25,7 +25,7 @@ import com.openappslabs.jotter.ui.screens.aboutscreen.AboutScreen
 import com.openappslabs.jotter.ui.screens.addcategoryscreen.AddCategoryScreen
 import com.openappslabs.jotter.ui.screens.appearancescreen.AppearanceScreen
 import com.openappslabs.jotter.ui.screens.datamanagementscreen.DataManagementScreen
-import com.openappslabs.jotter.ui.screens.miscellaneousscreen.MiscellaneousScreen
+import com.openappslabs.jotter.ui.screens.preferencesscreen.PreferencesScreen
 import com.openappslabs.jotter.ui.screens.homescreen.HomeScreen
 import com.openappslabs.jotter.ui.screens.notedetailscreen.NoteDetailScreen
 import com.openappslabs.jotter.ui.screens.privacypolicyscreen.PrivacyPolicyScreen
@@ -67,8 +67,9 @@ fun AppNavHost(
                 onPrivacyPolicyClick = { navController.navigate(AppRoutes.PrivacyPolicy) },
                 onAboutClick = { navController.navigate(AppRoutes.About) },
                 onAppearanceClick = { navController.navigate(AppRoutes.AppearanceScreen) },
+                onPreferencesClick = { navController.navigate(AppRoutes.PreferencesScreen) },
+                onCategoriesClick = { navController.navigate(AppRoutes.AddCategory) },
                 onTrashClick = { navController.navigate(AppRoutes.Trash) },
-                onMiscellaneousClick = { navController.navigate(AppRoutes.MiscellaneousScreen) },
                 onSecurityClick = { navController.navigate(AppRoutes.SecurityScreen) }
             )
         }
@@ -107,10 +108,9 @@ fun AppNavHost(
             AppearanceScreen(onBackClick = navController::popBackStack)
         }
 
-        composable<AppRoutes.MiscellaneousScreen> {
-            MiscellaneousScreen(
-                onBackClick = { navController.popBackStack() },
-                onManageTagsClick = { navController.navigate(AppRoutes.AddCategory) }
+        composable<AppRoutes.PreferencesScreen> {
+            PreferencesScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 
