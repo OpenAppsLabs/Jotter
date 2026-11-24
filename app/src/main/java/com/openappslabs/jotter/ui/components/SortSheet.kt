@@ -16,20 +16,32 @@
 
 package com.openappslabs.jotter.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -63,6 +75,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.openappslabs.jotter.data.model.SortDirection
 import com.openappslabs.jotter.data.model.SortType
@@ -153,88 +166,119 @@ private fun DirectionSegmentedControl(
     modifier: Modifier = Modifier
 ) {
     val haptics = rememberJotterHaptics()
+    val springSpec = remember { spring<Dp>(stiffness = 300f) }
 
-    Row(
+    val options = remember {
+        listOf(
+            DirectionOption(SortDirection.ASCENDING, "Ascending", Icons.Default.ArrowUpward),
+            DirectionOption(SortDirection.DESCENDING, "Descending", Icons.Default.ArrowDownward)
+        )
+    }
+
+    val selectedIndex = if (currentDirection == SortDirection.ASCENDING) 0 else 1
+
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        DirectionSegment(
-            text = "Ascending",
-            icon = Icons.Default.ArrowUpward,
-            isSelected = currentDirection == SortDirection.ASCENDING,
-            onClick = {
-                if (currentDirection != SortDirection.ASCENDING) {
-                    haptics.tick()
-                    onDirectionChange(SortDirection.ASCENDING)
-                }
-            },
-            modifier = Modifier.weight(1f)
+        val maxWidth = maxWidth
+        val spacing = 4.dp
+        val outerPadding = 4.dp
+        val itemWidth = (maxWidth - (outerPadding * 2) - spacing) / 2
+
+        val indicatorOffset by animateDpAsState(
+            targetValue = outerPadding + (itemWidth + spacing) * selectedIndex,
+            animationSpec = springSpec,
+            label = "DirectionIndicatorOffset"
         )
 
-        DirectionSegment(
-            text = "Descending",
-            icon = Icons.Default.ArrowDownward,
-            isSelected = currentDirection == SortDirection.DESCENDING,
-            onClick = {
-                if (currentDirection != SortDirection.DESCENDING) {
-                    haptics.tick()
-                    onDirectionChange(SortDirection.DESCENDING)
-                }
-            },
-            modifier = Modifier.weight(1f)
+        Box(
+            modifier = Modifier
+                .offset(x = indicatorOffset)
+                .width(itemWidth)
+                .fillMaxHeight()
+                .padding(vertical = outerPadding)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surface)
         )
-    }
-}
 
-@Composable
-private fun DirectionSegment(
-    text: String,
-    icon: ImageVector,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val bgColor = if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(12.dp))
-            .background(bgColor)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.RadioButton,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(outerPadding),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = contentColor
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = contentColor
-            )
+            options.forEachIndexed { index, option ->
+                val isSelected = selectedIndex == index
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    label = "DirectionContentColor"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.RadioButton,
+                            onClick = {
+                                if (!isSelected) {
+                                    haptics.tick()
+                                    onDirectionChange(option.direction)
+                                }
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = fadeIn() + scaleIn(spring(stiffness = 300f)) + expandHorizontally(
+                                animationSpec = spring(stiffness = 300f)
+                            ),
+                            exit = fadeOut() + scaleOut(spring(stiffness = 300f)) + shrinkHorizontally(
+                                animationSpec = spring(stiffness = 300f)
+                            )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = option.icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = contentColor
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                        }
+
+                        Text(
+                            text = option.text,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                            color = contentColor
+                        )
+                    }
+                }
+            }
         }
     }
 }
+
+private data class DirectionOption(
+    val direction: SortDirection,
+    val text: String,
+    val icon: ImageVector
+)
 
 @Composable
 private fun SortTypeRow(

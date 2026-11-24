@@ -36,19 +36,27 @@ class NotesRepositoryImpl @Inject constructor(
     override suspend fun getNoteById(noteId: Int): Note? = noteDao.getNoteById(noteId)
 
     override suspend fun addNote(note: Note): Long {
-        return noteDao.insert(note.copy(updatedTime = System.currentTimeMillis()))
+        val now = System.currentTimeMillis()
+        return noteDao.insert(note.copy(createdTime = now, updatedTime = now))
     }
 
     override suspend fun updateNote(note: Note) {
-        noteDao.update(note.copy(updatedTime = System.currentTimeMillis()))
+        noteDao.update(note)
+    }
+
+    override suspend fun updatePinStatus(noteId: Int, isPinned: Boolean) {
+        noteDao.updatePinStatus(noteId, isPinned)
+    }
+
+    override suspend fun updateLockStatus(noteId: Int, isLocked: Boolean) {
+        noteDao.updateLockStatus(noteId, isLocked)
     }
 
     override suspend fun trashNote(note: Note) {
         noteDao.updateNoteStatus(
             noteId = note.id,
             isArchived = false,
-            isTrashed = true,
-            updatedTime = System.currentTimeMillis()
+            isTrashed = true
         )
     }
 
@@ -56,8 +64,7 @@ class NotesRepositoryImpl @Inject constructor(
         noteDao.updateNoteStatus(
             noteId = note.id,
             isArchived = false,
-            isTrashed = false,
-            updatedTime = System.currentTimeMillis()
+            isTrashed = false
         )
     }
 

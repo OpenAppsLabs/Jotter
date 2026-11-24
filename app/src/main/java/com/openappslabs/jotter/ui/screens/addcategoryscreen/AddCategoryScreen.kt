@@ -220,8 +220,8 @@ fun AddCategoryScreen(
                 }
                 .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
+                    topStart = 12.dp,
+                    topEnd = 12.dp,
                     bottomStart = 0.dp,
                     bottomEnd = 0.dp
                 ))

@@ -18,6 +18,7 @@ package com.openappslabs.jotter.ui.screens.appearancescreen
 
 import com.openappslabs.jotter.ui.components.BackButton
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -125,21 +126,23 @@ fun AppearanceScreen(
                     )
                     TinyGap()
 
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        SettingsItemSwitch(
+                            icon = Icons.Default.ColorLens,
+                            title = "Dynamic colors",
+                            subtitle = "Adapt to wallpaper",
+                            checked = uiState.isDynamicColor,
+                            onCheckedChange = viewModel::updateDynamicColor
+                        )
+                        TinyGap()
+                    }
+
                     SettingsItemSwitch(
                         icon = Icons.Default.Brightness2,
                         title = "True dark mode",
                         subtitle = "Pure black for OLED displays",
                         checked = uiState.isTrueBlackEnabled,
                         onCheckedChange = viewModel::updateTrueBlackMode
-                    )
-                    TinyGap()
-
-                    SettingsItemSwitch(
-                        icon = Icons.Default.ColorLens,
-                        title = "Dynamic colors",
-                        subtitle = "Adapt to wallpaper",
-                        checked = uiState.isDynamicColor,
-                        onCheckedChange = viewModel::updateDynamicColor
                     )
                 }
             }

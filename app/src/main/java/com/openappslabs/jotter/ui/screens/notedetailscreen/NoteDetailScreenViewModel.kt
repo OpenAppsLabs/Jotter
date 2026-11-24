@@ -156,26 +156,6 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
-    private fun saveNoteStatus() {
-        viewModelScope.launch {
-            val currentState = uiState.value
-            if (currentState.id != null) {
-                val updatedNote = Note(
-                    id = currentState.id,
-                    title = currentState.title,
-                    content = currentState.content,
-                    category = currentState.category,
-                    isPinned = currentState.isPinned,
-                    isLocked = currentState.isLocked,
-                    isTrashed = currentState.isTrashed,
-                    createdTime = currentState.createdTime,
-                    updatedTime = System.currentTimeMillis()
-                )
-                notesRepository.updateNote(updatedNote)
-            }
-        }
-    }
-
     private fun checkForChanges() {
         val current = _uiState.value
         val original = originalState ?: return
@@ -204,13 +184,17 @@ class NoteDetailViewModel @Inject constructor(
     }
 
     fun togglePin() {
-        _uiState.update { it.copy(isPinned = !it.isPinned) }
-        saveNoteStatus()
+        val newPinned = !_uiState.value.isPinned
+        _uiState.update { it.copy(isPinned = newPinned) }
+        val id = _uiState.value.id ?: return
+        viewModelScope.launch { notesRepository.updatePinStatus(id, newPinned) }
     }
 
     fun toggleLock() {
-        _uiState.update { it.copy(isLocked = !it.isLocked) }
-        saveNoteStatus()
+        val newLocked = !_uiState.value.isLocked
+        _uiState.update { it.copy(isLocked = newLocked) }
+        val id = _uiState.value.id ?: return
+        viewModelScope.launch { notesRepository.updateLockStatus(id, newLocked) }
     }
 
     fun saveNote() {
@@ -221,6 +205,7 @@ class NoteDetailViewModel @Inject constructor(
                 categoryRepository.insertCategory(currentState.category)
             }
 
+            val now = System.currentTimeMillis()
             val noteToSave = Note(
                 id = currentState.id ?: 0,
                 title = currentState.title,
@@ -229,7 +214,8 @@ class NoteDetailViewModel @Inject constructor(
                 isPinned = currentState.isPinned,
                 isLocked = currentState.isLocked,
                 isTrashed = currentState.isTrashed,
-                createdTime = currentState.createdTime
+                createdTime = currentState.createdTime,
+                updatedTime = if (currentState.isModified) now else currentState.lastEdited
             )
 
             if (currentState.isNotePersisted) {
