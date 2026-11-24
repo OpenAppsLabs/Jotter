@@ -16,52 +16,35 @@
 
 package com.openappslabs.jotter.ui.screens.appearancescreen
 
-import com.openappslabs.jotter.ui.components.BackButton
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness2
-import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.openappslabs.jotter.ui.components.BackButton
 import com.openappslabs.jotter.ui.screens.settingsscreen.SettingsScreenViewModel
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsGroup
-import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemDateFormat
-import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemEditView
-import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemGridView
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemSwitch
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemTheme
-import com.openappslabs.jotter.ui.screens.settingsscreen.components.SettingsItemTimeFormat
 import com.openappslabs.jotter.ui.screens.settingsscreen.components.TinyGap
-import com.openappslabs.jotter.ui.theme.rememberJotterHaptics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +52,6 @@ fun AppearanceScreen(
     onBackClick: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel()
 ) {
-    val haptics = rememberJotterHaptics()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {
@@ -140,50 +122,6 @@ fun AppearanceScreen(
                         subtitle = "Adapt to wallpaper",
                         checked = uiState.isDynamicColor,
                         onCheckedChange = viewModel::updateDynamicColor
-                    )
-                }
-            }
-            item {
-                SettingsGroup {
-                    SettingsItemEditView(
-                        icon = Icons.Default.Edit,
-                        title = "Default open mode",
-                        subtitle = "View or edit",
-                        isEditDefault = uiState.defaultOpenInEdit,
-                        onToggleEditDefault = viewModel::updateDefaultOpenInEdit
-                    )
-
-                    TinyGap()
-
-                    SettingsItemGridView(
-                        icon = Icons.Outlined.Dashboard,
-                        title = "Default view mode",
-                        subtitle = if (uiState.isGridView) "Grid view" else "List view",
-                        isGridView = uiState.isGridView,
-                        onToggle = {
-                            viewModel.updateGridView(!uiState.isGridView)
-                        }
-                    )
-                }
-            }
-            item {
-                SettingsGroup {
-                    SettingsItemTimeFormat(
-                        icon = Icons.Outlined.Schedule,
-                        title = "Default time format",
-                        subtitle = if (uiState.is24HourFormat) "24‑hour clock" else "12 hour (AM/PM)",
-                        is24Hour = uiState.is24HourFormat,
-                        onToggle = viewModel::updateTimeFormat
-                    )
-
-                    TinyGap()
-
-                    SettingsItemDateFormat(
-                        icon = Icons.Outlined.CalendarMonth,
-                        title = "Date format",
-                        subtitle = "Change how dates appear",
-                        currentFormat = uiState.dateFormat,
-                        onFormatSelected = viewModel::updateDateFormat
                     )
                 }
             }

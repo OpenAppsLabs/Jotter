@@ -45,7 +45,7 @@ sealed interface AppRoutes {
     data object AppearanceScreen : AppRoutes
 
     @Serializable
-    data object MiscellaneousScreen : AppRoutes
+    data object PreferencesScreen : AppRoutes
 
     @Serializable
     data object SecurityScreen : AppRoutes

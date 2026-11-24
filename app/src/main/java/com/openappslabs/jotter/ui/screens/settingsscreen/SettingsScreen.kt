@@ -28,15 +28,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -70,8 +71,9 @@ fun SettingsScreen(
     onPrivacyPolicyClick: () -> Unit,
     onAboutClick: () -> Unit,
     onAppearanceClick: () -> Unit,
+    onPreferencesClick: () -> Unit,
+    onCategoriesClick: () -> Unit,
     onTrashClick: () -> Unit,
-    onMiscellaneousClick: () -> Unit,
     onSecurityClick: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel()
 ) {
@@ -132,19 +134,30 @@ fun SettingsScreen(
                     TinyGap()
 
                     SettingsItemArrow(
-                        icon = Icons.Default.Delete,
-                        title = "Trash",
-                        subtitle = "Notes you delete appear here",
-                        onClick = onTrashClick
+                        icon = Icons.Default.Tune,
+                        title = "Preferences",
+                        subtitle = "Controls & behavior",
+                        onClick = onPreferencesClick
+                    )
+                }
+            }
+
+            item {
+                SettingsGroup {
+                    SettingsItemArrow(
+                        icon = Icons.AutoMirrored.Filled.Label,
+                        title = "Categories",
+                        subtitle = "Add, edit or remove categories",
+                        onClick = onCategoriesClick
                     )
 
                     TinyGap()
 
                     SettingsItemArrow(
-                        icon = Icons.Default.Dashboard,
-                        title = "Miscellaneous",
-                        subtitle = "Categories & preferences",
-                        onClick = onMiscellaneousClick
+                        icon = Icons.Default.Delete,
+                        title = "Trash",
+                        subtitle = "Notes you delete appear here",
+                        onClick = onTrashClick
                     )
                 }
             }
