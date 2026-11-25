@@ -20,6 +20,7 @@ import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+import java.util.Locale
 
 @Immutable
 @Serializable
@@ -28,4 +29,28 @@ data class Category(
     @PrimaryKey
     val name: String,
     val createdTime: Long = System.currentTimeMillis()
-)
+) {
+    companion object {
+        const val MAX_LENGTH = 15
+
+        val RESERVED_NAMES = setOf(
+            "all",
+            "pinned",
+            "locked",
+            "uncategorized"
+        )
+
+        fun format(name: String): String {
+            val trimmed = name.trim().filter { !it.isWhitespace() }
+            if (trimmed.isEmpty()) return ""
+            val capped = if (trimmed.length > MAX_LENGTH) trimmed.take(MAX_LENGTH) else trimmed
+            return capped.lowercase().replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
+        }
+
+        fun isReserved(name: String): Boolean {
+            return format(name).lowercase() in RESERVED_NAMES
+        }
+    }
+}
