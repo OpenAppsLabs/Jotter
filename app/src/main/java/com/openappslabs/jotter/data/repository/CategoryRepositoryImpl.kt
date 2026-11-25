@@ -33,18 +33,18 @@ class CategoryRepositoryImpl @Inject constructor(
     override fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
 
     override suspend fun insertCategory(name: String) {
-        val trimmed = name.trim()
-        if (trimmed.isNotBlank()) {
-            categoryDao.insertCategory(Category(name = trimmed))
+        val formatted = Category.format(name)
+        if (formatted.isNotBlank() && !Category.isReserved(formatted)) {
+            categoryDao.insertCategory(Category(name = formatted))
         }
     }
 
     override suspend fun renameCategory(oldName: String, newName: String) {
-        val trimmed = newName.trim()
-        if (trimmed.isNotBlank() && oldName != trimmed) {
+        val formatted = Category.format(newName)
+        if (formatted.isNotBlank() && !Category.isReserved(formatted) && oldName != formatted) {
             database.withTransaction {
-                categoryDao.updateCategoryName(oldName, trimmed)
-                noteDao.updateNoteCategories(oldName, trimmed)
+                categoryDao.updateCategoryName(oldName, formatted)
+                noteDao.updateNoteCategories(oldName, formatted)
             }
         }
     }

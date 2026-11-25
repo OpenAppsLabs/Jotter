@@ -17,6 +17,7 @@
 package com.openappslabs.jotter.ui.screens.addcategoryscreen
 
 import com.openappslabs.jotter.ui.components.BackButton
+import com.openappslabs.jotter.data.model.Category
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -112,7 +113,8 @@ fun AddCategoryScreen(
     val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     val isActionEnabled = if (editingCategoryName != null) {
-        textFieldValue.text.trim() != editingCategoryName && textFieldValue.text.isNotBlank()
+        val formatted = Category.format(textFieldValue.text)
+        formatted != editingCategoryName && formatted.isNotBlank()
     } else {
         textFieldValue.text.isNotBlank()
     }
@@ -128,23 +130,32 @@ fun AddCategoryScreen(
     val performAction = remember(isActionEnabled, textFieldValue, categories, editingCategoryName, lastToastTime) {
         {
             if (isActionEnabled) {
-                val trimmed = textFieldValue.text.trim()
-                if (trimmed.isNotBlank()) {
-                    val isDuplicate = categories.any { it.equals(trimmed, ignoreCase = true) }
-                    if (isDuplicate && trimmed != editingCategoryName) {
+                val raw = textFieldValue.text.trim()
+                if (raw.isNotBlank()) {
+                    val formatted = Category.format(raw)
+                    if (Category.isReserved(formatted)) {
                         val currentTime = System.currentTimeMillis()
                         if (currentTime - lastToastTime > 2000) {
-                            Toast.makeText(context, "Category \"$trimmed\" already exists", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "\"$formatted\" is a reserved name", Toast.LENGTH_SHORT).show()
                             lastToastTime = currentTime
                         }
                     } else {
-                        haptics.success()
-                        if (editingCategoryName != null) {
-                            viewModel.updateCategory(editingCategoryName!!, trimmed)
+                        val isDuplicate = categories.any { it.equals(formatted, ignoreCase = true) }
+                        if (isDuplicate && formatted != editingCategoryName) {
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - lastToastTime > 2000) {
+                                Toast.makeText(context, "Category \"$formatted\" already exists", Toast.LENGTH_SHORT).show()
+                                lastToastTime = currentTime
+                            }
                         } else {
-                            viewModel.addCategory(trimmed)
+                            haptics.success()
+                            if (editingCategoryName != null) {
+                                viewModel.updateCategory(editingCategoryName!!, formatted)
+                            } else {
+                                viewModel.addCategory(formatted)
+                            }
+                            resetInput()
                         }
-                        resetInput()
                     }
                 }
             }
@@ -167,12 +178,8 @@ fun AddCategoryScreen(
         }
     }
 
-    BackHandler(enabled = isImeVisible || editingCategoryName != null || textFieldValue.text.isNotEmpty()) {
-        if (isImeVisible) {
-            focusManager.clearFocus()
-        } else {
-            resetInput()
-        }
+    BackHandler(enabled = isImeVisible) {
+        focusManager.clearFocus()
     }
 
     categoryToDelete?.let { categoryName ->
@@ -254,7 +261,7 @@ fun AddCategoryScreen(
                             value = textFieldValue,
                             onValueChange = { newValue ->
                                 val filteredText = newValue.text.filter { !it.isWhitespace() }
-                                if (filteredText.length <= 15) {
+                                if (filteredText.length <= Category.MAX_LENGTH) {
                                     textFieldValue = newValue.copy(text = filteredText)
                                 }
                             },
@@ -263,7 +270,7 @@ fun AddCategoryScreen(
                             colors = transparentColors,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
+                                capitalization = KeyboardCapitalization.Words,
                                 autoCorrectEnabled = false,
                                 imeAction = ImeAction.Done
                             ),
