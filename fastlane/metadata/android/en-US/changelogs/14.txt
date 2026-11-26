@@ -1,0 +1,8 @@
+> Warning: Please back up your notes before updating to this version.
+
+What's New:
+- Note timestamps: Pinning, locking, deleting, or restoring notes no longer changes their modified date
+- Promoted Categories and Trash to top-level Settings for faster access
+- Renamed Misc to Preferences and reorganized note options
+- Category rules: Blocked reserved names, Title Case formatting, and fixed casing-only renames
+- Smoother back navigation in category screen and minor UI polish
